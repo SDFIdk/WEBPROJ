@@ -1,0 +1,56 @@
+{
+    "EPSG:25832": {
+        "country": "DK",
+        "title": "ETRS89 / UTM Zone 32 Nord",
+        "title_short": "ETRS89/UTM32N",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:3184": {
+        "country": "GL",
+        "srid": "EPSG:3184",
+        "title": "GR96 / UTM Zone 24 Nord",
+        "title_short": "GR96/UTM24N",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4258": {
+        "country": "DK",
+        "title": "European Terrestrial Reference System 1989",
+        "title_short": "ETRS89",
+        "v1": "længdegrad",
+        "v1_short": "λ",
+        "v2": "breddegrad",
+        "v2_short": "ϕ",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4909": {
+        "country": "GL",
+        "srid": "EPSG:4909",
+        "title": "Greenland Reference 1996",
+        "title_short": "GR96",
+        "v1": "længdegrad",
+        "v1_short": "λ",
+        "v2": "breddegrad",
+        "v2_short": "ϕ",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    }
+}
