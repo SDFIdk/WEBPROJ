@@ -21,7 +21,7 @@ using conda
 $ conda env create -f environment.yaml
 ```
 
-Replace `environemt.yaml` with `environment-dev.yaml` if you want
+Replace `environment.yaml` with `environment-dev.yaml` if you want
 to setup a development environment.
 
 Activate the new environment with
