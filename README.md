@@ -14,7 +14,7 @@ the current version two main entry points are provided: `/crs/` and
 
 ### Installation
 
-For ease of installation it is recommended to setup an envrionment
+For ease of installation it is recommended to setup an environment
 using conda
 
 ```
@@ -98,7 +98,7 @@ Transform coordinate `<coord>` from `<src_crs>` to `<dst_src`. Coordinate
 input can be either 2D, 3D or 4D. The returned output will always be 4D, but
 depending on the input the number of used output coordinate components varies.
 
-##### Exampels
+##### Examples
 
 ```
 # 2D
