@@ -48,7 +48,7 @@ class Transformation(Resource):
 
         out = pyproj.transform(pj_src, pj_dst, v1, v2, v3)
 
-        return {"v1:": out[0], "v2": out[1], "v3": out[2], "v4": v4}
+        return {"v1": out[0], "v2": out[1], "v3": out[2], "v4": v4}
 
 
 api.add_resource(CRSIndex, "/v1.0/crs/")
