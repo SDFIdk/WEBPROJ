@@ -6,7 +6,6 @@ from flask_restful import Api, Resource, reqparse, abort
 import pyproj
 
 
-
 app = Flask(__name__)
 api = Api(app)
 
@@ -14,6 +13,10 @@ DATA = Path(__file__).parent / Path("data.json")
 
 with open(DATA, "r", encoding="UTF-8") as data:
     CRS_LIST = json.load(data)
+
+class EndPoint(Resource):
+    def get(self):
+        return {}
 
 
 class CRSIndex(Resource):
@@ -50,7 +53,7 @@ class Transformation(Resource):
 
         return {"v1": out[0], "v2": out[1], "v3": out[2], "v4": v4}
 
-
+api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
