@@ -7,7 +7,7 @@ RUN pip install pyproj
 # RUN pip install flask-restful
 RUN pip install flask-restful-swagger
 
-COPY /api/api.py /app/main.py
-COPY /api/data.json /app/data.json
+COPY /webproj/api.py /app/main.py
+COPY /webproj/data.json /app/data.json
 
 
