@@ -14,12 +14,11 @@ install:
   - conda info -a
 
   - conda env create -f environment-dev.yaml
-
+  - conda activate webproj
   # There's not a proper conda package for flask-restful-swagger
   - which pip
   - pip --version
   - pip install flask-restful-swagger
 
 script:
-  - conda activate webproj
   - pytest
