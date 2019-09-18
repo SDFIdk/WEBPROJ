@@ -12,6 +12,45 @@
         "v4": null,
         "v4_short": null
     },
+    "DK:S34J": {
+        "country": "DK",
+        "title": "System 34 Jylland",
+        "title_short": "S34J",
+        "v1": "Westing",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": null,
+        "v3_short": null,
+        "v4": null,
+        "v4_short": null
+    },
+    "DK:S34S": {
+        "country": "DK",
+        "title": "System 34 Sjælland",
+        "title_short": "S34S",
+        "v1": "Westing",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": null,
+        "v3_short": null,
+        "v4": null,
+        "v4_short": null
+    },
+    "DK:S45B": {
+        "country": "DK",
+        "title": "System 45 Bornholm",
+        "title_short": "S45B",
+        "v1": "Westing",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": null,
+        "v3_short": null,
+        "v4": null,
+        "v4_short": null
+    },
     "EPSG:3184": {
         "country": "GL",
         "srid": "EPSG:3184",

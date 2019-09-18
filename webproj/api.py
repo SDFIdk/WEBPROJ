@@ -40,28 +40,85 @@ class CRS(Resource):
 
 
 class Transformation(Resource):
+
+    def _make_4d(self, coord):
+
+        if len(coord) == 2:
+            return (coord[0], coord[1], None, None)
+
+        if len(coord) == 3:
+            return (coord[0], coord[1], coord[2], None)
+
+        if len(coord) == 4:
+            return (coord[0], coord[1], coord[2], coord[3])
+
+        return ()
+
     def get(self, src, dst, v1, v2, v3=None, v4=None):
         src = src.upper()
         dst = dst.upper()
+        dst_hub = dst
+
+        if src not in CRS_LIST.keys():
+            abort(404, message=f"Unknown source CRS identifier: '{src}'")
+
+        if dst not in CRS_LIST.keys():
+            abort(404, message=f"Unknown destination CRS identifier: '{dst}'")
 
         if CRS_LIST[src]['country'] not in (CRS_LIST[dst]['country'], 'Global'):
             abort(404, message="CRS's are not compatible across countries")
 
-        try:
-            transformer = Transformer.from_crs(src, dst)
-        except RuntimeError:
-            abort(404, message="Invalid CRS identifier")
+        src_auth = src.split(':')[0]
+        dst_auth = dst.split(':')[0]
 
+        # determine which transformation stops to do along the way
+        non_epsg_src = src_auth != 'EPSG'
+        non_epsg_dst = dst_auth != 'EPSG'
 
-        out = transformer.transform(v1, v2, v3, v4)
+        if non_epsg_src:
+            pipeline = (f"+proj=pipeline "
+                        f"+step +inv +init={src} "
+                        f"+step +proj=unitconvert +xy_in=rad +xy_out=deg "
+                        f"+step +proj=axisswap +order=2,1"
+            )
+            p = Transformer.from_pipeline(pipeline)
+            out = p.transform(v1, v2, v3, v4)
+            (v1, v2, v3, v4) = self._make_4d(out)
 
-        if len(out) == 2:
-            return {"v1": out[0], "v2": out[1], "v3": None, "v4": None}
+            if src_auth == 'DK':
+                src = "EPSG:4258"
 
-        if len(out) == 3:
-            return {"v1": out[0], "v2": out[1], "v3": out[2], "v4": None}
+        # standard case, which handles all transformations between
+        # CRS's that are both EPSG SRID's AND which handles transformations
+        # where ONE of the two CRS's is a non-EPSG SRID by supplying a
+        # transformation hub using ETRS89 or GR96
+        if src != dst or non_epsg_src != non_epsg_dst:
+            if dst_auth == 'DK':
+                dst_hub = "EPSG:4258"
+            if dst_auth == 'GL':
+                dst_hub = "EPSG:4909"
 
-        return {"v1": out[0], "v2": out[1], "v3": out[2], "v4": out[3]}
+            try:
+                transformer = Transformer.from_crs(src, dst_hub)
+            except RuntimeError as e:
+                print(e)
+                abort(404, message="Invalid CRS identifier")
+
+            out = transformer.transform(v1, v2, v3, v4)
+            (v1, v2, v3, v4) = self._make_4d(out)
+
+        if non_epsg_dst:
+            pipeline = (f"+proj=pipeline "
+                        f"+step +proj=axisswap +order=2,1 "
+                        f"+step +proj=unitconvert +xy_in=deg +xy_out=rad "
+                        f"+step +init={dst}"
+            )
+            p = Transformer.from_pipeline(pipeline)
+            print(v1, v2, v3, v4)
+            out = p.transform(v1, v2, v3, v4)
+            (v1, v2, v3, v4) = self._make_4d(out)
+
+        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
 
 api.add_resource(EndPoint, "/")

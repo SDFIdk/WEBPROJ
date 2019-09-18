@@ -8,7 +8,7 @@ from webproj import api
 class WebProjTest(unittest.TestCase):
     def assert_result(self, entry, expected_json_output):
         """
-        Check that a given API reource return the expected result
+        Check that a given API resource return the expected result
         """
         response = self.app.get(entry)
         self.assertEqual(
@@ -93,3 +93,34 @@ class TestAPI(WebProjTest):
             "v4": 2010.5,
         }
         self.assert_result(api_entry, expected)
+
+    def test_sys34(self):
+        """
+        Test that system 34 is handled correctly. In this case
+        we transform from S34J to EPSG:25832 and vice versa.
+        """
+        api_entry_fwd = "v1.0/trans/DK:S34J/EPSG:25832/295799.3977,175252.0903"
+        exp_fwd = {
+            "v1": 499999.99999808666,
+            "v2": 6206079.587029327,
+            "v3": None,
+            "v4": None
+        }
+        self.assert_result(api_entry_fwd, exp_fwd)
+
+        api_entry_inv = "v1.0/trans/EPSG:25832/DK:S34J/500000.0,6205000.0"
+        exp_inv = {
+                "v1": 295820.9708249467,
+                "v2": 174172.32360956355,
+                "v3": None,
+                "v4": None,
+        }
+        self.assert_result(api_entry_inv, exp_inv)
+
+        apy_entry_js = "v1.0/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
+        exp_js = {
+            "v1": 138010.86611871765,
+            "v2": 63644.234364821285,
+            "v3": None,
+            "v4": None
+        }
