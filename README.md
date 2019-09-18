@@ -33,6 +33,16 @@ $ conda activate webproj
 For production use, the API should be installed as a component in a
 WSGI compatible http server. How to configure this depends on the used http server.
 
+### Tests
+
+WEBPROJ uses the `pytest` environment for tests. Run the test-suite with
+
+```
+$ pytest
+```
+
+in the root of the repository.
+
 ### Usage
 
 For a simple demonstration of the WEBPROJ REST API a webserver can
