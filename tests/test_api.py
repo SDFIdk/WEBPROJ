@@ -59,12 +59,12 @@ class TestAPI(WebProjTest):
         """
         Test that 2D transformations behaves as expected
         """
-        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0"
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56.0,12.0"
         expected = {
             "v1": 687071.4391094431,
             "v2": 6210141.326748009,
-            "v3": 0.0,
-            "v4": 0.0,
+            "v3": None,
+            "v4": None,
         }
         self.assert_result(api_entry, expected)
 
@@ -72,12 +72,12 @@ class TestAPI(WebProjTest):
         """
         Test that 3D transformations behaves as expected
         """
-        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0"
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56.0,12.0,30.0"
         expected = {
             "v1": 687071.4391094431,
             "v2": 6210141.326748009,
             "v3": 30.0,
-            "v4": 0.0,
+            "v4": None,
         }
         self.assert_result(api_entry, expected)
 
@@ -85,7 +85,7 @@ class TestAPI(WebProjTest):
         """
         Test that 4D transformations behaves as expected
         """
-        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0,2010.5"
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56.0,12.0,30.0,2010.5"
         expected = {
             "v1": 687071.4391094431,
             "v2": 6210141.326748009,
