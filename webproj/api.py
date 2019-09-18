@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from flask import Flask
-from flask_restful import Api, Resource, reqparse, abort
+from flask_restful import Api, Resource, abort
 from flask_restful_swagger import swagger
 import pyproj
 
