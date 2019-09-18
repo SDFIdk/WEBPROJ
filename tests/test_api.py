@@ -47,6 +47,14 @@ class TestAPI(WebProjTest):
         for srid, crsinfo in api.CRS_LIST.items():
             self.assert_result(f"/v1.0/crs/{srid}", crsinfo)
 
+    def test_crs_that_doesnt_exist(self):
+        """
+        Test that we get the proper response when requesting an unknown CRS
+        """
+        expected = {"message": "'unknowncrs' not available"}
+
+        self.assert_result("/v1.0/crs/unknowncrs", expected)
+
     def test_trans_2d(self):
         """
         Test that 2D transformations behaves as expected
