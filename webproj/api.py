@@ -4,16 +4,21 @@ from pathlib import Path
 from flask import Flask
 from flask_restful import Api, Resource, abort
 from flask_restful_swagger import swagger
-from pyproj.transformer import Transformer
+from pyproj.transformer import Transformer, AreaOfInterest
 
 
 app = Flask(__name__)
 api = Api(app)
 
-DATA = Path(__file__).parent / Path("data.json")
+_DATA = Path(__file__).parent / Path("data.json")
 
-with open(DATA, "r", encoding="UTF-8") as data:
+with open(_DATA, "r", encoding="UTF-8") as data:
     CRS_LIST = json.load(data)
+
+AOI = {
+    'DK': AreaOfInterest(3.0, 54.5, 15.5, 58.0),
+    'GL': AreaOfInterest(-75.0, 56.0, 8.5, 87.5)
+}
 
 class EndPoint(Resource):
     def get(self):
@@ -65,8 +70,18 @@ class Transformation(Resource):
         if dst not in CRS_LIST.keys():
             abort(404, message=f"Unknown destination CRS identifier: '{dst}'")
 
-        if CRS_LIST[src]['country'] not in (CRS_LIST[dst]['country'], 'Global'):
+        src_region = CRS_LIST[src]['country']
+        dst_region = CRS_LIST[dst]['country']
+        if src_region not in (dst_region, 'Global'):
             abort(404, message="CRS's are not compatible across countries")
+
+        # determine region of transformation
+        if src_region == dst_region:
+            region = AOI[src_region]
+        elif src_region == 'Global':
+            region = AOI[dst_region]
+        else:
+            region = AOI[src_region]
 
         src_auth = src.split(':')[0]
         dst_auth = dst.split(':')[0]
@@ -99,7 +114,7 @@ class Transformation(Resource):
                 dst_hub = "EPSG:4909"
 
             try:
-                transformer = Transformer.from_crs(src, dst_hub)
+                transformer = Transformer.from_crs(src, dst_hub, area_of_interest=region)
             except RuntimeError as e:
                 print(e)
                 abort(404, message="Invalid CRS identifier")
