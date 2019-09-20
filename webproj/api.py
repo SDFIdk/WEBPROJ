@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 
 from flask import Flask
-from flask_restful import Api, Resource, abort
-from flask_restful_swagger import swagger
+from flask_restplus import Api, Resource, fields
 from pyproj.transformer import Transformer, AreaOfInterest
 
 

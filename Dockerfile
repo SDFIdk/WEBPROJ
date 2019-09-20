@@ -4,10 +4,8 @@ EXPOSE 5000
 
 RUN pip install --upgrade pip
 RUN pip install pyproj
-# RUN pip install flask-restful
-RUN pip install flask-restful-swagger
+RUN pip install flask-restplus 
 
 COPY /webproj/api.py /app/main.py
 COPY /webproj/data.json /app/data.json
-
 
