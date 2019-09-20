@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from flask import Flask
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api, Resource, fields, abort
 from pyproj.transformer import Transformer, AreaOfInterest
 
 

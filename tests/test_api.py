@@ -21,12 +21,6 @@ class TestAPI(WebProjTest):
     def setup_class(self):
         self.app = api.app.test_client()
 
-    def test_root(self):
-        """
-        Test that the root of the API returns something
-        """
-        self.assert_result("/", {})
-
     def test_crs_index(self):
         """
         Test that the index of all available CRS's is returned
@@ -51,7 +45,7 @@ class TestAPI(WebProjTest):
         """
         Test that we get the proper response when requesting an unknown CRS
         """
-        expected = {"message": "'unknowncrs' not available"}
+        expected = {"message": "'unknowncrs' not available. You have requested this URI [/v1.0/crs/unknowncrs] but did you mean /v1.0/crs/<string:crs> ?"}
 
         self.assert_result("/v1.0/crs/unknowncrs", expected)
 
