@@ -26,6 +26,9 @@ class EndPoint(Resource):
 
 class CRSIndex(Resource):
     def get(self):
+        """
+        List available coordinate reference systems
+        """
         index = {}
         for srid, crsinfo in CRS_LIST.items():
             if crsinfo["country"] not in index:
@@ -37,6 +40,9 @@ class CRSIndex(Resource):
 
 class CRS(Resource):
     def get(self, crs):
+        """
+        Retrieve information about a given coordinate reference system
+        """
         try:
             return CRS_LIST[crs.upper()]
         except KeyError:
@@ -58,7 +64,18 @@ class Transformation(Resource):
 
         return ()
 
+    @api.doc(params={
+        'src': 'Source CRS',
+        'dst': 'Destination CRS',
+        'v1': '1st coordinate component',
+        'v2': '2nd coordinate component',
+        'v3': '3rd coordinate component',
+        'v4': '4th coordinate component',
+    })
     def get(self, src, dst, v1, v2, v3=None, v4=None):
+        """
+        Transform a coordinate from one CRS to another
+        """
         src = src.upper()
         dst = dst.upper()
         dst_hub = dst
