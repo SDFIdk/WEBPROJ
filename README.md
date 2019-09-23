@@ -49,7 +49,7 @@ For a simple demonstration of the WEBPROJ REST API a webserver can
 be started locally by running
 
 ```
-(webproj) C:\dev\webproj>python api\api.py
+(webproj) C:\dev\webproj>python webproj\api.py
 ```
 
 This will spawn a Flask server that serves the API locally on
