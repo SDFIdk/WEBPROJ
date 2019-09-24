@@ -172,6 +172,8 @@ class CRS(Resource):
             return CRS_LIST[crs.upper()]
         except KeyError:
             abort(404, message=f"'{crs}' not available")
+    def post(self,crs):
+        return self.get(crs)
 
 
 class Transformation(Resource):
