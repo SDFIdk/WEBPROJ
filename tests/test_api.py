@@ -49,6 +49,16 @@ class TestAPI(WebProjTest):
 
         self.assert_result("/v1.0/crs/unknowncrs", expected)
 
+    def test_transformer_caching(self):
+        """
+        Check that caching works by comparing objects with the is operator
+        """
+
+        transformer_a = api.TransformerFactory.create('EPSG:4095', 'EPSG:4096')
+        transformer_b = api.TransformerFactory.create('EPSG:4095', 'EPSG:4096')
+
+        assert transformer_a is transformer_b
+
     def test_trans_2d(self):
         """
         Test that 2D transformations behaves as expected
