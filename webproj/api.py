@@ -19,6 +19,19 @@ AOI = {
     'GL': AreaOfInterest(-75.0, 56.0, 8.5, 87.5)
 }
 
+def _make_4d(coord):
+
+    if len(coord) == 2:
+        return (coord[0], coord[1], None, None)
+
+    if len(coord) == 3:
+        return (coord[0], coord[1], coord[2], None)
+
+    if len(coord) == 4:
+        return (coord[0], coord[1], coord[2], coord[3])
+
+    return ()
+
 class OptimusPrime():
     """
     Optimus Prime is a Transformer... also, this is fun and avoids
@@ -97,19 +110,6 @@ class OptimusPrime():
             )
             self.post_pipeline = Transformer.from_pipeline(pipeline)
 
-    def _make_4d(self, coord):
-
-        if len(coord) == 2:
-            return (coord[0], coord[1], None, None)
-
-        if len(coord) == 3:
-            return (coord[0], coord[1], coord[2], None)
-
-        if len(coord) == 4:
-            return (coord[0], coord[1], coord[2], coord[3])
-
-        return ()
-
     def transform(self, coord):
         """
         Transform coordinate
@@ -117,15 +117,15 @@ class OptimusPrime():
         (v1, v2, v3, v4) = coord
         if self.pre_pipeline:
             out = self.pre_pipeline.transform(v1, v2, v3, v4)
-            (v1, v2, v3, v4) = self._make_4d(out)
+            (v1, v2, v3, v4) = _make_4d(out)
 
         if self.epsg_pipeline:
             out = self.epsg_pipeline.transform(v1, v2, v3, v4)
-            (v1, v2, v3, v4) = self._make_4d(out)
+            (v1, v2, v3, v4) = _make_4d(out)
 
         if self.post_pipeline:
             out = self.post_pipeline.transform(v1, v2, v3, v4)
-            (v1, v2, v3, v4) = self._make_4d(out)
+            (v1, v2, v3, v4) = _make_4d(out)
 
         return (v1, v2, v3, v4)
 
@@ -143,6 +143,7 @@ class TransformerFactory():
             cls.transformers[src][dst] = OptimusPrime(src, dst)
 
         return cls.transformers[src][dst]
+
 
 class EndPoint(Resource):
     def get(self):
@@ -174,43 +175,91 @@ class CRS(Resource):
             abort(404, message=f"'{crs}' not available")
 
 
-class Transformation(Resource):
+class Transformation2D(Resource):
 
-    @api.doc(params={
+    doc = {
+        'src': 'Source CRS',
+        'dst': 'Destination CRS',
+        'v1': '1st coordinate component',
+        'v2': '2nd coordinate component',
+    }
+
+    @api.doc(params=doc)
+    def get(self, src, dst, v1, v2):
+        """
+        Transform a coordinate from one CRS to another
+        """
+        try:
+            transformer = TransformerFactory.create(src, dst)
+        except ValueError as error:
+            abort(404, message=error)
+        (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2)))
+
+        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+
+class Transformation3D(Resource):
+
+    doc = {
+        'src': 'Source CRS',
+        'dst': 'Destination CRS',
+        'v1': '1st coordinate component',
+        'v2': '2nd coordinate component',
+        'v3': '3rd coordinate component',
+    }
+
+    @api.doc(params=doc)
+    def get(self, src, dst, v1, v2, v3):
+        """
+        Transform a coordinate from one CRS to another
+        """
+        try:
+            transformer = TransformerFactory.create(src, dst)
+        except ValueError as error:
+            abort(404, message=error)
+        (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2, v3)))
+
+        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+
+class Transformation4D(Resource):
+
+    doc = {
         'src': 'Source CRS',
         'dst': 'Destination CRS',
         'v1': '1st coordinate component',
         'v2': '2nd coordinate component',
         'v3': '3rd coordinate component',
         'v4': '4th coordinate component',
-    })
+    }
+
+    @api.doc(params=doc)
     def get(self, src, dst, v1, v2, v3=None, v4=None):
         """
         Transform a coordinate from one CRS to another
         """
-        transformer = TransformerFactory.create(src, dst)
+        try:
+            transformer = TransformerFactory.create(src, dst)
+        except ValueError as error:
+            abort(404, message=error)
         (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
-
 
 api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
-    Transformation,
+    Transformation2D,
     "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>",
-    endpoint="trans_2d",
 )
 api.add_resource(
-    Transformation,
+    Transformation3D,
     "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>,<float:v3>",
-    endpoint="trans_3d",
 )
 api.add_resource(
-    Transformation,
+    Transformation4D,
     "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>,<float:v3>,<float:v4>",
-    endpoint="trans_4d",
 )
 
 if __name__ == "__main__":
