@@ -187,7 +187,7 @@ class Transformation2D(Resource):
     @api.doc(params=doc)
     def get(self, src, dst, v1, v2):
         """
-        Transform a coordinate from one CRS to another
+        Transform a 2D coordinate from one CRS to another
         """
         try:
             transformer = TransformerFactory.create(src, dst)
@@ -211,7 +211,7 @@ class Transformation3D(Resource):
     @api.doc(params=doc)
     def get(self, src, dst, v1, v2, v3):
         """
-        Transform a coordinate from one CRS to another
+        Transform a 3D coordinate from one CRS to another
         """
         try:
             transformer = TransformerFactory.create(src, dst)
@@ -236,7 +236,7 @@ class Transformation4D(Resource):
     @api.doc(params=doc)
     def get(self, src, dst, v1, v2, v3=None, v4=None):
         """
-        Transform a coordinate from one CRS to another
+        Transform a 4D coordinate from one CRS to another
         """
         try:
             transformer = TransformerFactory.create(src, dst)
