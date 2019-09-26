@@ -7,12 +7,20 @@
 
 FROM tiangolo/meinheld-gunicorn-flask:python3.7
 
+ENV WEBPROJ_LIB /proj
+
 EXPOSE 5000
 
-#ADD https://download.osgeo.org/proj/proj-datumgrid-europe-latest.tar.gz /proj
-#ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-latest.tar.gz /proj
+RUN mkdir /proj
 
-ENV PROJ_LIB $PROJ_LIB:/proj
+ADD https://download.osgeo.org/proj/proj-datumgrid-europe-latest.tar.gz /
+ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-latest.tar.gz /
+
+RUN tar -zxvf /proj-datumgrid-europe-latest.tar.gz -C /proj
+RUN tar -zxvf /proj-datumgrid-north-america-latest.tar.gz -C /proj
+
+RUN rm /proj-datumgrid-europe-latest.tar.gz
+RUN rm /proj-datumgrid-north-america-latest.tar.gz
 
 COPY /webproj /webproj/webproj
 COPY /tests /webproj/tests
@@ -21,10 +29,7 @@ COPY /setup.py /webproj/setup.py
 COPY /README.md /webproj/README.md
 COPY /app/main.py /app/main.py
 
-
 RUN pip install --upgrade pip
 RUN pip install pyproj
 RUN pip install flask-restplus
-RUN pwd
-RUN ls
 RUN pip install /webproj

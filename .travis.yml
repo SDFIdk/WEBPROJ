@@ -23,6 +23,7 @@ install:
 
 script:
   - pytest
-  - docker exec restapi curl localhost/v1.0/crs/
-  - curl localhost:5000/v1.0/crs/
-  - docker ps | grep -q restapi
+  # Check that the DK init file is available and that transformations work as expected
+  - docker exec restapi curl -s localhost/v1.0/trans/EPSG:4258/DK:S34S/55.0,12.0 > S34S.out
+  - cat S34S.out
+  - diff test_s34s.out S34S.out

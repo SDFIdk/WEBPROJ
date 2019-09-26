@@ -1,11 +1,16 @@
+import os
 import json
 from pathlib import Path
 
 from flask import Flask
 from flask_restplus import Api, Resource, fields, abort
+import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
 version = '0.1'
+
+if 'WEBPROJ_LIB' in os.environ:
+    pyproj.datadir.append_data_dir(os.environ['WEBPROJ_LIB'])
 
 app = Flask(__name__)
 api = Api(app, version=version, title="WEBPROJ")
