@@ -1,13 +1,19 @@
+import os
 import json
 from pathlib import Path
 
 from flask import Flask
 from flask_restplus import Api, Resource, fields, abort
+import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
+version = '0.1'
+
+if 'WEBPROJ_LIB' in os.environ:
+    pyproj.datadir.append_data_dir(os.environ['WEBPROJ_LIB'])
 
 app = Flask(__name__)
-api = Api(app)
+api = Api(app, version=version, title="WEBPROJ")
 
 _DATA = Path(__file__).parent / Path("data.json")
 
@@ -261,6 +267,3 @@ api.add_resource(
     Transformation4D,
     "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>,<float:v3>,<float:v4>",
 )
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
