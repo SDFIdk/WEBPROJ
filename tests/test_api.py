@@ -128,3 +128,12 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None
         }
+
+    def test_transformation_outside_crs_area_of_use(self):
+        """
+        Test that 404 is returned when a transformation can't return sane
+        values due to usage outside defined area of use.
+        """
+        api_entry = "v1.0/trans/EPSG:4258/DK:S34S/12.0,56.0"
+        expected = {"message": "Input coordinate outside area of use of either source or destination CRS"}
+        self.assert_result(api_entry, expected)

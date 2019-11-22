@@ -133,6 +133,10 @@ class OptimusPrime():
             out = self.post_pipeline.transform(v1, v2, v3, v4)
             (v1, v2, v3, v4) = _make_4d(out)
 
+        if float("inf") in out:
+            print("flaf")
+            raise ValueError('Input coordinate outside area of use of either source or destination CRS')
+
         return (v1, v2, v3, v4)
 
 
@@ -197,9 +201,9 @@ class Transformation2D(Resource):
         """
         try:
             transformer = TransformerFactory.create(src, dst)
+            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2)))
         except ValueError as error:
             abort(404, message=error)
-        (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2)))
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
@@ -221,9 +225,9 @@ class Transformation3D(Resource):
         """
         try:
             transformer = TransformerFactory.create(src, dst)
+            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2, v3)))
         except ValueError as error:
             abort(404, message=error)
-        (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2, v3)))
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
@@ -246,9 +250,9 @@ class Transformation4D(Resource):
         """
         try:
             transformer = TransformerFactory.create(src, dst)
+            (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
         except ValueError as error:
             abort(404, message=error)
-        (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
