@@ -45,7 +45,9 @@ class TestAPI(WebProjTest):
         """
         Test that we get the proper response when requesting an unknown CRS
         """
-        expected = {"message": "'unknowncrs' not available. You have requested this URI [/v1.0/crs/unknowncrs] but did you mean /v1.0/crs/<string:crs> ?"}
+        expected = {
+            "message": "'unknowncrs' not available. You have requested this URI [/v1.0/crs/unknowncrs] but did you mean /v1.0/crs/<string:crs> ?"
+        }
 
         self.assert_result("/v1.0/crs/unknowncrs", expected)
 
@@ -54,8 +56,8 @@ class TestAPI(WebProjTest):
         Check that caching works by comparing objects with the is operator
         """
 
-        transformer_a = api.TransformerFactory.create('EPSG:4095', 'EPSG:4096')
-        transformer_b = api.TransformerFactory.create('EPSG:4095', 'EPSG:4096')
+        transformer_a = api.TransformerFactory.create("EPSG:4095", "EPSG:4096")
+        transformer_b = api.TransformerFactory.create("EPSG:4095", "EPSG:4096")
 
         assert transformer_a is transformer_b
 
@@ -108,25 +110,27 @@ class TestAPI(WebProjTest):
             "v1": 499999.99999808666,
             "v2": 6206079.587029327,
             "v3": None,
-            "v4": None
+            "v4": None,
         }
         self.assert_result(api_entry_fwd, exp_fwd)
 
         api_entry_inv = "v1.0/trans/EPSG:25832/DK:S34J/500000.0,6205000.0"
         exp_inv = {
-                "v1": 295820.9708249467,
-                "v2": 174172.32360956355,
-                "v3": None,
-                "v4": None,
+            "v1": 295820.9708249467,
+            "v2": 174172.32360956355,
+            "v3": None,
+            "v4": None,
         }
         self.assert_result(api_entry_inv, exp_inv)
 
-        apy_entry_js = "v1.0/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
+        apy_entry_js = (
+            "v1.0/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
+        )
         exp_js = {
             "v1": 138010.86611871765,
             "v2": 63644.234364821285,
             "v3": None,
-            "v4": None
+            "v4": None,
         }
 
     def test_transformation_outside_crs_area_of_use(self):
@@ -135,5 +139,7 @@ class TestAPI(WebProjTest):
         values due to usage outside defined area of use.
         """
         api_entry = "v1.0/trans/EPSG:4258/DK:S34S/12.0,56.0"
-        expected = {"message": "Input coordinate outside area of use of either source or destination CRS"}
+        expected = {
+            "message": "Input coordinate outside area of use of either source or destination CRS"
+        }
         self.assert_result(api_entry, expected)

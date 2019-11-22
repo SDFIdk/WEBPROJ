@@ -7,10 +7,10 @@ from flask_restplus import Api, Resource, fields, abort
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
-version = '0.1'
+version = "0.1"
 
-if 'WEBPROJ_LIB' in os.environ:
-    pyproj.datadir.append_data_dir(os.environ['WEBPROJ_LIB'])
+if "WEBPROJ_LIB" in os.environ:
+    pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
 
 app = Flask(__name__)
 api = Api(app, version=version, title="WEBPROJ")
@@ -21,9 +21,10 @@ with open(_DATA, "r", encoding="UTF-8") as data:
     CRS_LIST = json.load(data)
 
 AOI = {
-    'DK': AreaOfInterest(3.0, 54.5, 15.5, 58.0),
-    'GL': AreaOfInterest(-75.0, 56.0, 8.5, 87.5)
+    "DK": AreaOfInterest(3.0, 54.5, 15.5, 58.0),
+    "GL": AreaOfInterest(-75.0, 56.0, 8.5, 87.5),
 }
+
 
 def _make_4d(coord):
 
@@ -38,11 +39,13 @@ def _make_4d(coord):
 
     return ()
 
-class OptimusPrime():
+
+class OptimusPrime:
     """
     Optimus Prime is a Transformer... also, this is fun and avoids
     name clashes with pyproj
     """
+
     def __init__(self, src, dst):
         """
         Transformation from src to dst
@@ -61,36 +64,36 @@ class OptimusPrime():
         if dst not in CRS_LIST.keys():
             raise ValueError(f"Unknown destination CRS identifier: '{dst}'")
 
-        src_region = CRS_LIST[src]['country']
-        dst_region = CRS_LIST[dst]['country']
-        if src_region not in (dst_region, 'Global'):
+        src_region = CRS_LIST[src]["country"]
+        dst_region = CRS_LIST[dst]["country"]
+        if src_region not in (dst_region, "Global"):
             raise ValueError("CRS's are not compatible across countries")
 
         # determine region of transformation
         if src_region == dst_region:
             region = AOI[src_region]
-        elif src_region == 'Global':
+        elif src_region == "Global":
             region = AOI[dst_region]
         else:
             region = AOI[src_region]
 
-        src_auth = src.split(':')[0]
-        dst_auth = dst.split(':')[0]
+        src_auth = src.split(":")[0]
+        dst_auth = dst.split(":")[0]
 
         # determine which transformation stops to do along the way
-        non_epsg_src = src_auth != 'EPSG'
-        non_epsg_dst = dst_auth != 'EPSG'
+        non_epsg_src = src_auth != "EPSG"
+        non_epsg_dst = dst_auth != "EPSG"
 
         if non_epsg_src:
-            pipeline = (f"+proj=pipeline "
-                        f"+step +inv +init={src} "
-                        f"+step +proj=unitconvert +xy_in=rad +xy_out=deg "
-                        f"+step +proj=axisswap +order=2,1"
+            pipeline = (
+                f"+proj=pipeline "
+                f"+step +inv +init={src} "
+                f"+step +proj=unitconvert +xy_in=rad +xy_out=deg "
+                f"+step +proj=axisswap +order=2,1"
             )
             self.pre_pipeline = Transformer.from_pipeline(pipeline)
 
-
-            if src_auth == 'DK':
+            if src_auth == "DK":
                 src = "EPSG:4258"
 
         # standard case, which handles all transformations between
@@ -98,21 +101,24 @@ class OptimusPrime():
         # where ONE of the two CRS's is a non-EPSG SRID by supplying a
         # transformation hub using ETRS89 or GR96
         if src != dst or non_epsg_src != non_epsg_dst:
-            if dst_auth == 'DK':
+            if dst_auth == "DK":
                 dst_hub = "EPSG:4258"
-            if dst_auth == 'GL':
+            if dst_auth == "GL":
                 dst_hub = "EPSG:4909"
 
             try:
-                self.epsg_pipeline = Transformer.from_crs(src, dst_hub, area_of_interest=region)
+                self.epsg_pipeline = Transformer.from_crs(
+                    src, dst_hub, area_of_interest=region
+                )
             except RuntimeError as e:
                 raise ValueError("Invalid CRS identifier")
 
         if non_epsg_dst:
-            pipeline = (f"+proj=pipeline "
-                        f"+step +proj=axisswap +order=2,1 "
-                        f"+step +proj=unitconvert +xy_in=deg +xy_out=rad "
-                        f"+step +init={dst}"
+            pipeline = (
+                f"+proj=pipeline "
+                f"+step +proj=axisswap +order=2,1 "
+                f"+step +proj=unitconvert +xy_in=deg +xy_out=rad "
+                f"+step +init={dst}"
             )
             self.post_pipeline = Transformer.from_pipeline(pipeline)
 
@@ -135,12 +141,14 @@ class OptimusPrime():
 
         if float("inf") in out:
             print("flaf")
-            raise ValueError('Input coordinate outside area of use of either source or destination CRS')
+            raise ValueError(
+                "Input coordinate outside area of use of either source or destination CRS"
+            )
 
         return (v1, v2, v3, v4)
 
 
-class TransformerFactory():
+class TransformerFactory:
 
     transformers = {}
 
@@ -188,10 +196,10 @@ class CRS(Resource):
 class Transformation2D(Resource):
 
     doc = {
-        'src': 'Source CRS',
-        'dst': 'Destination CRS',
-        'v1': '1st coordinate component',
-        'v2': '2nd coordinate component',
+        "src": "Source CRS",
+        "dst": "Destination CRS",
+        "v1": "1st coordinate component",
+        "v2": "2nd coordinate component",
     }
 
     @api.doc(params=doc)
@@ -211,11 +219,11 @@ class Transformation2D(Resource):
 class Transformation3D(Resource):
 
     doc = {
-        'src': 'Source CRS',
-        'dst': 'Destination CRS',
-        'v1': '1st coordinate component',
-        'v2': '2nd coordinate component',
-        'v3': '3rd coordinate component',
+        "src": "Source CRS",
+        "dst": "Destination CRS",
+        "v1": "1st coordinate component",
+        "v2": "2nd coordinate component",
+        "v3": "3rd coordinate component",
     }
 
     @api.doc(params=doc)
@@ -235,12 +243,12 @@ class Transformation3D(Resource):
 class Transformation4D(Resource):
 
     doc = {
-        'src': 'Source CRS',
-        'dst': 'Destination CRS',
-        'v1': '1st coordinate component',
-        'v2': '2nd coordinate component',
-        'v3': '3rd coordinate component',
-        'v4': '4th coordinate component',
+        "src": "Source CRS",
+        "dst": "Destination CRS",
+        "v1": "1st coordinate component",
+        "v2": "2nd coordinate component",
+        "v3": "3rd coordinate component",
+        "v4": "4th coordinate component",
     }
 
     @api.doc(params=doc)
@@ -256,12 +264,12 @@ class Transformation4D(Resource):
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
+
 api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
-    Transformation2D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>",
+    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>"
 )
 api.add_resource(
     Transformation3D,
