@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from flask import Flask
+from flask_cors import CORS
 from flask_restplus import Api, Resource, fields, abort
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
@@ -13,6 +14,8 @@ if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
 
 app = Flask(__name__)
+CORS(app)
+
 api = Api(app, version=version, title="WEBPROJ")
 
 _DATA = Path(__file__).parent / Path("data.json")
@@ -27,7 +30,6 @@ AOI = {
 
 
 def _make_4d(coord):
-
     if len(coord) == 2:
         return (coord[0], coord[1], None, None)
 
@@ -149,7 +151,6 @@ class OptimusPrime:
 
 
 class TransformerFactory:
-
     transformers = {}
 
     @classmethod
@@ -163,6 +164,7 @@ class TransformerFactory:
         return cls.transformers[src][dst]
 
 
+@app.route("/")
 class EndPoint(Resource):
     def get(self):
         return {}
@@ -194,7 +196,6 @@ class CRS(Resource):
 
 
 class Transformation2D(Resource):
-
     doc = {
         "src": "Source CRS",
         "dst": "Destination CRS",
@@ -217,7 +218,6 @@ class Transformation2D(Resource):
 
 
 class Transformation3D(Resource):
-
     doc = {
         "src": "Source CRS",
         "dst": "Destination CRS",
@@ -241,7 +241,6 @@ class Transformation3D(Resource):
 
 
 class Transformation4D(Resource):
-
     doc = {
         "src": "Source CRS",
         "dst": "Destination CRS",
