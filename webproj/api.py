@@ -141,8 +141,7 @@ class OptimusPrime:
             out = self.post_pipeline.transform(v1, v2, v3, v4)
             (v1, v2, v3, v4) = _make_4d(out)
 
-        if float("inf") in out:
-            print("flaf")
+        if float("inf") in out or float("-inf") in out:
             raise ValueError(
                 "Input coordinate outside area of use of either source or destination CRS"
             )
@@ -226,6 +225,7 @@ class Transformation3D(Resource):
         "v3": "3rd coordinate component",
     }
 
+
     @api.doc(params=doc)
     def get(self, src, dst, v1, v2, v3):
         """
@@ -268,13 +268,13 @@ api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
-    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>"
+    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>"
 )
 api.add_resource(
     Transformation3D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>,<float:v3>",
+    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>,<float(signed=True):v3>",
 )
 api.add_resource(
     Transformation4D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float:v1>,<float:v2>,<float:v3>,<float:v4>",
+    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>,<float(signed=True):v3>,<float(signed=True):v4>",
 )

@@ -143,3 +143,17 @@ class TestAPI(WebProjTest):
             "message": "Input coordinate outside area of use of either source or destination CRS"
         }
         self.assert_result(api_entry, expected)
+
+    def test_negative_coordinate_values(self):
+        """
+        Negative coordinate values are occasionally needed, for instance
+        longitudes in Greenland. Let's test that we can deal with them.
+        """
+        api_entry = "v1.0/trans/EPSG:4326/EPSG:25832/-12.0,56.0"
+        expected = {
+            "v1": 6231950.538290203,
+            "v2": -1920310.7126844588,
+            "v3": None,
+            "v4": None,
+        }
+        self.assert_result(api_entry, expected)
