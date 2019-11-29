@@ -25,6 +25,32 @@
         "v4": null,
         "v4_short": null
     },
+    "EPSG:7416": {
+        "country": "DK",
+        "title": "ETRS89 / UTM Zone 32 Nord + DVR90",
+        "title_short": "ETRS89/UTM32N+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:7417": {
+        "country": "DK",
+        "title": "ETRS89 / UTM Zone 33 Nord + DVR90",
+        "title_short": "ETRS89/UTM33N+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
     "EPSG:32632": {
         "country": "DK",
         "title": "WGS84 / UTM Zone 32 Nord",
@@ -103,6 +129,58 @@
         "v4": null,
         "v4_short": null
     },
+    "EPSG:4097": {
+        "country": "DK",
+        "title": "ETRS89 / DKTM Zone 1 + DVR90",
+        "title_short": "ETRS89/DKTM1+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4098": {
+        "country": "DK",
+        "title": "ETRS89 / DKTM Zone 2 + DVR90",
+        "title_short": "ETRS89/DKTM2+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4099": {
+        "country": "DK",
+        "title": "ETRS89 / DKTM Zone 3 + DVR90",
+        "title_short": "ETRS89/DKTM3+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4100": {
+        "country": "DK",
+        "title": "ETRS89 / DKTM Zone 4 + DVR90",
+        "title_short": "ETRS89/DKTM4+DVR90",
+        "v1": "Easting",
+        "v1_short": "x",
+        "v2": "Northing",
+        "v2_short": "y",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
     "DK:S34J": {
         "country": "DK",
         "title": "System 34 Jylland",
@@ -144,7 +222,6 @@
     },
     "EPSG:3184": {
         "country": "GL",
-        "srid": "EPSG:3184",
         "title": "GR96 / UTM Zone 24 Nord",
         "title_short": "GR96/UTM24N",
         "v1": "Easting",
@@ -171,7 +248,6 @@
     },
     "EPSG:4909": {
         "country": "GL",
-        "srid": "EPSG:4909",
         "title": "Greenland Reference 1996",
         "title_short": "GR96",
         "v1": "breddegrad",
@@ -183,9 +259,21 @@
         "v4": null,
         "v4_short": null
     },
+    "EPSG:8350": {
+        "country": "GL",
+        "title": "Greenland Reference 1996 + GVR2016 højde",
+        "title_short": "GR96",
+        "v1": "breddegrad",
+        "v1_short": "ϕ",
+        "v2": "længdegrad",
+        "v2_short": "λ",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
     "EPSG:4326": {
         "country": "Global",
-        "srid": "EPSG:4909",
         "title": "World Geodetic System 1984",
         "title_short": "WGS84",
         "v1": "breddegrad",
