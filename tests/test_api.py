@@ -8,13 +8,31 @@ from webproj import api
 class WebProjTest(unittest.TestCase):
     def assert_result(self, entry, expected_json_output):
         """
-        Check that a given API resource return the expected result
+        Check that a given API resource return the expected result.
         """
         response = self.app.get(entry)
         self.assertEqual(
             json.loads(response.get_data().decode(sys.getdefaultencoding())),
             expected_json_output,
         )
+
+    def assert_coordinate(self, entry, expected_json_output, tolerance=1e-6):
+        """
+        Check that a returned coordinate matches the expected result
+        within a pre-determined tolerance
+        """
+        response = self.app.get(entry)
+        result = json.loads(response.get_data().decode(sys.getdefaultencoding()))
+        for key in expected_json_output.keys():
+            if not key in result.keys():
+                raise AssertionError
+
+        for key, value in result.items():
+            expected_value = expected_json_output[key]
+            if value is  None and expected_value is None:
+                continue
+            if abs(value - expected_value) > tolerance:
+                raise AssertionError
 
 
 class TestAPI(WebProjTest):
@@ -72,7 +90,7 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None,
         }
-        self.assert_result(api_entry, expected)
+        self.assert_coordinate(api_entry, expected)
 
     def test_trans_3d(self):
         """
@@ -85,7 +103,7 @@ class TestAPI(WebProjTest):
             "v3": 30.0,
             "v4": None,
         }
-        self.assert_result(api_entry, expected)
+        self.assert_coordinate(api_entry, expected)
 
     def test_trans_4d(self):
         """
@@ -98,7 +116,7 @@ class TestAPI(WebProjTest):
             "v3": 30.0,
             "v4": 2010.5,
         }
-        self.assert_result(api_entry, expected)
+        self.assert_coordinate(api_entry, expected)
 
     def test_sys34(self):
         """
@@ -112,7 +130,7 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None,
         }
-        self.assert_result(api_entry_fwd, exp_fwd)
+        self.assert_coordinate(api_entry_fwd, exp_fwd)
 
         api_entry_inv = "v1.0/trans/EPSG:25832/DK:S34J/500000.0,6205000.0"
         exp_inv = {
@@ -121,9 +139,9 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None,
         }
-        self.assert_result(api_entry_inv, exp_inv)
+        self.assert_coordinate(api_entry_inv, exp_inv)
 
-        apy_entry_js = (
+        api_entry_js = (
             "v1.0/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
         )
         exp_js = {
@@ -132,6 +150,7 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None,
         }
+        self.assert_coordinate(api_entry_js, exp_js)
 
     def test_transformation_outside_crs_area_of_use(self):
         """
@@ -156,4 +175,4 @@ class TestAPI(WebProjTest):
             "v3": None,
             "v4": None,
         }
-        self.assert_result(api_entry, expected)
+        self.assert_coordinate(api_entry, expected)
