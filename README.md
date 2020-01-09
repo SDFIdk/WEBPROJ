@@ -1,10 +1,11 @@
 # WEBPROJ
 
-WEBPROJ is a proof-of-concept of a web API for exposing coordinate
-transformations via PROJ. Eventually, the proof-of-concept will also
-include a basic web application that consumes the API and makes
-coordinate transformation simple for users who are not familiar with
-PROJ and other professional GIS tools.
+WEBPROJ is a REST API that exposes coordinate transformations for coordinate
+reference systems in Denmark and Greenland. The production version of WEBPROJ
+is running as part of [Kortforsyningen](kortforsyningen.dk). To use the API you
+need an access token, which users of Kortforsyningen can generate when they are
+logged in to their personal accounts. The documentation the REST API can be found
+at https://docs.kortforsyningen.dk/#webproj.
 
 ## API
 
