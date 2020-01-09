@@ -8,12 +8,16 @@ from flask_restplus import Api, Resource, fields, abort
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
+from webproj.utils import IntFloatConverter
+
 version = "0.1"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
 
+# Set up the app
 app = Flask(__name__)
+app.url_map.converters["number"] = IntFloatConverter
 CORS(app)
 
 api = Api(app, version=version, title="WEBPROJ")
@@ -267,14 +271,13 @@ api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
-    Transformation2D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>",
+    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>"
 )
 api.add_resource(
     Transformation3D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>,<float(signed=True):v3>",
+    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>",
 )
 api.add_resource(
     Transformation4D,
-    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>,<float(signed=True):v3>,<float(signed=True):v4>",
+    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>",
 )

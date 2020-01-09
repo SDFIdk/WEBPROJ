@@ -29,7 +29,7 @@ class WebProjTest(unittest.TestCase):
 
         for key, value in result.items():
             expected_value = expected_json_output[key]
-            if value is  None and expected_value is None:
+            if value is None and expected_value is None:
                 continue
             if abs(value - expected_value) > tolerance:
                 raise AssertionError
@@ -208,3 +208,52 @@ class TestAPI(WebProjTest):
         api_entry = "v1.0/trans/EPSG:4909/EPSG:4258/75.0,-50.0"
         expected = {"message": "CRS's are not compatible across countries"}
         self.assert_result(api_entry, expected)
+
+    def test_integer_coordinates(self):
+        """
+        Test the 'number' Werkzeug converter for parsing coordinates in routes
+        """
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56,12"
+        expected = {
+            "v1": 687071.4391094431,
+            "v2": 6210141.326748009,
+            "v3": None,
+            "v4": None,
+        }
+        self.assert_coordinate(api_entry, expected)
+
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56.,12."
+        expected = {
+            "v1": 687071.4391094431,
+            "v2": 6210141.326748009,
+            "v3": None,
+            "v4": None,
+        }
+        self.assert_coordinate(api_entry, expected)
+
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56.0,12.0"
+        expected = {
+            "v1": 687071.4391094431,
+            "v2": 6210141.326748009,
+            "v3": None,
+            "v4": None,
+        }
+        self.assert_coordinate(api_entry, expected)
+
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56,12,0"
+        expected = {
+            "v1": 687071.4391094431,
+            "v2": 6210141.326748009,
+            "v3": 0.0,
+            "v4": None,
+        }
+        self.assert_coordinate(api_entry, expected)
+
+        api_entry = "/v1.0/trans/EPSG:4258/EPSG:25832/56,12,0,2020"
+        expected = {
+            "v1": 687071.4391094431,
+            "v2": 6210141.326748009,
+            "v3": 0.0,
+            "v4": 2020,
+        }
+        self.assert_coordinate(api_entry, expected)
