@@ -13,14 +13,14 @@ EXPOSE 5000
 
 RUN mkdir /proj
 
-ADD https://download.osgeo.org/proj/proj-datumgrid-europe-latest.tar.gz /
-ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-latest.tar.gz /
+ADD https://download.osgeo.org/proj/proj-datumgrid-europe-1.4.tar.gz /
+ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-1.2.tar.gz /
 
-RUN tar -zxvf /proj-datumgrid-europe-latest.tar.gz -C /proj
-RUN tar -zxvf /proj-datumgrid-north-america-latest.tar.gz -C /proj
+RUN tar -zxvf /proj-datumgrid-europe-1.4.tar.gz -C /proj
+RUN tar -zxvf /proj-datumgrid-north-america-1.2.tar.gz -C /proj
 
-RUN rm /proj-datumgrid-europe-latest.tar.gz
-RUN rm /proj-datumgrid-north-america-latest.tar.gz
+RUN rm /proj-datumgrid-europe-1.4.tar.gz
+RUN rm /proj-datumgrid-north-america-1.2.tar.gz
 
 COPY /webproj /webproj/webproj
 COPY /tests /webproj/tests
