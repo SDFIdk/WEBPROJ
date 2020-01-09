@@ -176,3 +176,35 @@ class TestAPI(WebProjTest):
             "v4": None,
         }
         self.assert_coordinate(api_entry, expected)
+
+    def test_transformation_between_global_and_regional_crs(self):
+        """
+        Transformation between WGS84 and ETRS89/GR96 should be
+        possible both ways. Test the logic that determines if two
+        CRS's are compatible.
+        """
+        # first test the case from a global CRS to a regional CRS
+        api_entry = (
+            "/v1.0/trans/EPSG:4326/EPSG:25832/55.68950140789923,12.58696909994519"
+        )
+        expected = {"v1": 725448.0, "v2": 6177354.999999999, "v3": None, "v4": None}
+        self.assert_coordinate(api_entry, expected)
+
+        # then test the reverse case from regional to global
+        api_entry = "/v1.0/trans/EPSG:25832/EPSG:4258/725448.0,6177355.0"
+        expected = {
+            "v1": 55.689501407899236,
+            "v2": 12.58696909994519,
+            "v3": None,
+            "v4": None,
+        }
+        self.assert_coordinate(api_entry, expected, tolerance=1e-9)
+
+        # test some failing cases DK -> GL
+        api_entry = "v1.0/trans/EPSG:4258/EPSG:4909/55.0,12.0"
+        expected = {"message": "CRS's are not compatible across countries"}
+        self.assert_result(api_entry, expected)
+
+        api_entry = "v1.0/trans/EPSG:4909/EPSG:4258/75.0,-50.0"
+        expected = {"message": "CRS's are not compatible across countries"}
+        self.assert_result(api_entry, expected)

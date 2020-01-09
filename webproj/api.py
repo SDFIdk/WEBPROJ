@@ -68,7 +68,7 @@ class OptimusPrime:
 
         src_region = CRS_LIST[src]["country"]
         dst_region = CRS_LIST[dst]["country"]
-        if src_region not in (dst_region, "Global"):
+        if src_region != dst_region and "Global" not in (src_region, dst_region):
             raise ValueError("CRS's are not compatible across countries")
 
         # determine region of transformation
@@ -225,7 +225,6 @@ class Transformation3D(Resource):
         "v3": "3rd coordinate component",
     }
 
-
     @api.doc(params=doc)
     def get(self, src, dst, v1, v2, v3):
         """
@@ -268,7 +267,8 @@ api.add_resource(EndPoint, "/")
 api.add_resource(CRSIndex, "/v1.0/crs/")
 api.add_resource(CRS, "/v1.0/crs/<string:crs>")
 api.add_resource(
-    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>"
+    Transformation2D,
+    "/v1.0/trans/<string:src>/<string:dst>/<float(signed=True):v1>,<float(signed=True):v2>",
 )
 api.add_resource(
     Transformation3D,
