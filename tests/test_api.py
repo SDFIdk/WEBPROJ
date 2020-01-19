@@ -6,6 +6,9 @@ from webproj import api
 
 
 class WebProjTest(unittest.TestCase):
+    def setup_class(self):
+        self.app = api.app.test_client()
+
     def assert_result(self, entry, expected_json_output):
         """
         Check that a given API resource return the expected result.
@@ -36,8 +39,6 @@ class WebProjTest(unittest.TestCase):
 
 
 class TestAPI(WebProjTest):
-    def setup_class(self):
-        self.app = api.app.test_client()
 
     def test_crs_index(self):
         """
