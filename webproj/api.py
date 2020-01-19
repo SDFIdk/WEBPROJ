@@ -167,12 +167,13 @@ class TransformerFactory:
         return cls.transformers[src][dst]
 
 
-@app.route("/")
+@api.route("/")
 class EndPoint(Resource):
     def get(self):
         return {}
 
 
+@api.route("/v1.0/crs/")
 class CRSIndex(Resource):
     def get(self):
         """
@@ -187,6 +188,7 @@ class CRSIndex(Resource):
         return index
 
 
+@api.route("/v1.0/crs/<string:crs>")
 class CRS(Resource):
     def get(self, crs):
         """
@@ -198,6 +200,7 @@ class CRS(Resource):
             abort(404, message=f"'{crs}' not available")
 
 
+@api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
 class Transformation2D(Resource):
     doc = {
         "src": "Source CRS",
@@ -220,6 +223,7 @@ class Transformation2D(Resource):
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
 
+@api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
 class Transformation3D(Resource):
     doc = {
         "src": "Source CRS",
@@ -243,6 +247,9 @@ class Transformation3D(Resource):
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
 
+@api.route(
+    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
+)
 class Transformation4D(Resource):
     doc = {
         "src": "Source CRS",
@@ -265,19 +272,3 @@ class Transformation4D(Resource):
             abort(404, message=error)
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
-
-
-api.add_resource(EndPoint, "/")
-api.add_resource(CRSIndex, "/v1.0/crs/")
-api.add_resource(CRS, "/v1.0/crs/<string:crs>")
-api.add_resource(
-    Transformation2D, "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>"
-)
-api.add_resource(
-    Transformation3D,
-    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>",
-)
-api.add_resource(
-    Transformation4D,
-    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>",
-)
