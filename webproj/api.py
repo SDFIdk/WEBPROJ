@@ -174,6 +174,7 @@ class EndPoint(Resource):
 
 
 @api.route("/v1.0/crs/")
+@api.route("/v1.1/crs/")
 class CRSIndex(Resource):
     def get(self):
         """
@@ -189,6 +190,7 @@ class CRSIndex(Resource):
 
 
 @api.route("/v1.0/crs/<string:crs>")
+@api.route("/v1.1/crs/<string:crs>")
 class CRS(Resource):
     def get(self, crs):
         """
@@ -201,6 +203,7 @@ class CRS(Resource):
 
 
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
+@api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
 class Transformation2D(Resource):
     doc = {
         "src": "Source CRS",
@@ -224,6 +227,7 @@ class Transformation2D(Resource):
 
 
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
+@api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
 class Transformation3D(Resource):
     doc = {
         "src": "Source CRS",
@@ -249,6 +253,9 @@ class Transformation3D(Resource):
 
 @api.route(
     "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
+)
+@api.route(
+    "/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
 )
 class Transformation4D(Resource):
     doc = {
