@@ -278,9 +278,9 @@ def test_combined_epsg_codes(api_all):
     """
     api_entry = f"/{api_all}/trans/EPSG:4909/EPSG:3184+8267/64.0,-51.5,0"
     expected = {
-        "v1": -108394.70,
-        "v2": 7156992.58,
-        "v3": -27.91,
+        "v1": -108394.69573,
+        "v2": 7156992.58360,
+        "v3": -27.91300,
         "v4": None,
     }
     _assert_coordinate(api_entry, expected, tolerance=0.01)
