@@ -181,6 +181,58 @@
         "v4": null,
         "v4_short": null
     },
+    "EPSG:4230": {
+        "country": "DK",
+        "title": "European Datum 1950",
+        "title_short": "ED50",
+        "v1": "breddegrad",
+        "v1_short": "ϕ",
+        "v2": "længdegrad",
+        "v2_short": "λ",
+        "v3":"ellipsoidehøjde",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:23031": {
+        "country": "DK",
+        "title": "ED50 / UTM Zone 31 Nord",
+        "title_short": "ED50/UTM31N",
+        "v1": "easting",
+        "v1_short": "x",
+        "v2": "northing",
+        "v2_short": "y",
+        "v3":"ellipsoidehøjde",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:23032": {
+        "country": "DK",
+        "title": "ED50 / UTM Zone 32 Nord",
+        "title_short": "ED50/UTM32N",
+        "v1": "easting",
+        "v1_short": "x",
+        "v2": "northing",
+        "v2_short": "y",
+        "v3":"ellipsoidehøjde",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:23033": {
+        "country": "DK",
+        "title": "ED50 / UTM Zone 33 Nord",
+        "title_short": "ED50/UTM33N",
+        "v1": "easting",
+        "v1_short": "x",
+        "v2": "northing",
+        "v2_short": "y",
+        "v3":"ellipsoidehøjde",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
     "DK:S34J": {
         "country": "DK",
         "title": "System 34 Jylland",
