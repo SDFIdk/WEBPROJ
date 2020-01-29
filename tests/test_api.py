@@ -270,3 +270,17 @@ def test_integer_coordinates(api_all):
     api_entry = f"/{api_all}/trans/EPSG:4258/EPSG:25832/56,12,0,2020"
     expected = {"v1": 687071.4391094431, "v2": 6210141.326748009, "v3": 0.0, "v4": 2020}
     _assert_coordinate(api_entry, expected)
+
+def test_combined_epsg_codes(api_all):
+    """
+    Test that EPSG codes that consist of a combination of two
+    codes (horizontal+vertical) works as expected
+    """
+    api_entry = f"/{api_all}/trans/EPSG:4909/EPSG:3184+8267/64.0,-51.5,0"
+    expected = {
+        "v1": -108394.70,
+        "v2": 7156992.58,
+        "v3": -27.91,
+        "v4": None,
+    }
+    _assert_coordinate(api_entry, expected, tolerance=0.01)
