@@ -32,6 +32,8 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
     app = api.app.test_client()
     response = app.get(entry)
     result = json.loads(response.get_data().decode(sys.getdefaultencoding()))
+    print(expected_json_output)
+    print(result)
     for key in expected_json_output.keys():
         if not key in result.keys():
             raise AssertionError
