@@ -31,6 +31,6 @@ COPY /app/main.py /app/main.py
 
 RUN pip install --upgrade pip
 RUN pip install pyproj
-RUN pip install flask-restplus
+RUN pip install flask-restx
 RUN pip install flask-cors
 RUN pip install /webproj
