@@ -4,7 +4,7 @@ from pathlib import Path
 
 from flask import Flask
 from flask_cors import CORS
-from flask_restplus import Api, Resource, fields, abort
+from flask_restx import Api, Resource, fields, abort
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 

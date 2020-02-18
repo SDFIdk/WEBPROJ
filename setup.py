@@ -16,7 +16,7 @@ setup(
     url="https://github.com/Kortforsyningen/WEBPROJ",
     long_description=readme,
     packages=["webproj", "tests", "app"],
-    install_requires=["flask", "flask-restplus", "flask-cors", "pyproj"],
+    install_requires=["flask", "flask-restx", "flask-cors", "pyproj"],
     test_suite="tests/test_api.py",
     data_files=["webproj/data.json"],
     include_package_data=True,
