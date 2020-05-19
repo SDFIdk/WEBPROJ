@@ -194,6 +194,17 @@
         "v4": null,
         "v4_short": null
     },
+    "EPSG:4230+5733": {
+        "country": "DK",
+        "title": "European Datum 1950 / Dansk Normal Nul",
+        "title_short": "ED50 / DNN",
+        "v2": "længdegrad",
+        "v2_short": "λ",
+        "v3": "kote",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
     "EPSG:23031": {
         "country": "DK",
         "title": "ED50 / UTM Zone 31 Nord",
@@ -220,7 +231,20 @@
         "v4": null,
         "v4_short": null
     },
-    "EPSG:23033": {
+    "EPSG:23032+5733": {
+        "country": "DK",
+        "title": "ED50 / UTM Zone 32 Nord + Dansk Normal Nul",
+        "title_short": "ED50/UTM32N + DNN",
+        "v1": "easting",
+        "v1_short": "x",
+        "v2": "northing",
+        "v2_short": "y",
+        "v3":"ellipsoidehøjde",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
+     "EPSG:23033": {
         "country": "DK",
         "title": "ED50 / UTM Zone 33 Nord",
         "title_short": "ED50/UTM33N",
@@ -233,7 +257,20 @@
         "v4": null,
         "v4_short": null
     },
-    "DK:S34J": {
+     "EPSG:23033+5733": {
+        "country": "DK",
+        "title": "ED50 / UTM Zone 33 Nord + Dansk Normal Nul",
+        "title_short": "ED50/UTM33N + DNN",
+        "v1": "easting",
+        "v1_short": "x",
+        "v2": "northing",
+        "v2_short": "y",
+        "v3":"kote",
+        "v3_short":"h",
+        "v4": null,
+        "v4_short": null
+    },
+     "DK:S34J": {
         "country": "DK",
         "title": "System 34 Jylland",
         "title_short": "S34J",
@@ -593,6 +630,19 @@
         "v2": "længdegrad",
         "v2_short": "λ",
         "v3": "ellipsoidehøjde",
+        "v3_short": "h",
+        "v4": null,
+        "v4_short": null
+    },
+    "EPSG:4258+5799": {
+        "country": "DK",
+        "title": "European Terrestrial Reference System 1989 / DVR90",
+        "title_short": "ETRS89 / DVR90",
+        "v1": "breddegrad",
+        "v1_short": "ϕ",
+        "v2": "længdegrad",
+        "v2_short": "λ",
+        "v3": "kote",
         "v3_short": "h",
         "v4": null,
         "v4_short": null
