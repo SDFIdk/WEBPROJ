@@ -33,4 +33,5 @@ RUN pip install --upgrade pip
 RUN pip install pyproj
 RUN pip install flask-restx
 RUN pip install flask-cors
+RUN pip install Werkzeug
 RUN pip install /webproj
