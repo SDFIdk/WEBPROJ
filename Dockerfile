@@ -28,5 +28,5 @@ COPY /README.md /webproj/README.md
 COPY /app/main.py /app/main.py
 
 RUN pip install --upgrade pip
-RUN pip install pyproj flash-restx flask-cors Werkzeug
+RUN pip install pyproj flask-restx flask-cors Werkzeug
 RUN pip install /webproj
