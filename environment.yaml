@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.7
+  - python=3.8
   - pip>=20.0
   - werkzeug>=1.0
   - flask>=1.0
