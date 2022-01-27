@@ -28,5 +28,6 @@ COPY /README.md /webproj/README.md
 COPY /app/main.py /app/main.py
 
 RUN pip install --upgrade pip
-RUN pip install pyproj flask-restx flask-cors Werkzeug
+RUN pip install "pyproj>=3.3.0,<3.4.0"
+RUN pip install flask-restx flask-cors Werkzeug
 RUN pip install /webproj
