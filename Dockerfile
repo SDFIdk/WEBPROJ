@@ -11,14 +11,14 @@ ENV WEBPROJ_LIB /proj
 
 RUN mkdir /proj
 
-ADD https://download.osgeo.org/proj/proj-datumgrid-europe-1.4.tar.gz /
-ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-1.2.tar.gz /
+ADD https://download.osgeo.org/proj/proj-datumgrid-europe-1.6.tar.gz /
+ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-1.4.tar.gz /
 
-RUN tar -zxvf /proj-datumgrid-europe-1.4.tar.gz -C /proj \
-    && tar -zxvf /proj-datumgrid-north-america-1.2.tar.gz -C /proj
+RUN tar -zxvf /proj-datumgrid-europe-1.6.tar.gz -C /proj \
+    && tar -zxvf /proj-datumgrid-north-america-1.4.tar.gz -C /proj
 
-RUN rm /proj-datumgrid-europe-1.4.tar.gz \
-    && rm /proj-datumgrid-north-america-1.2.tar.gz
+RUN rm /proj-datumgrid-europe-1.6.tar.gz \
+    && rm /proj-datumgrid-north-america-1.4.tar.gz
 
 COPY /webproj /webproj/webproj
 COPY /tests /webproj/tests
