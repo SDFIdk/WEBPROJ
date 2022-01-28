@@ -1,0 +1,35 @@
+name: Tests
+'on': [push, pull_request]
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker build --tag webproj .
+      - run: 'docker run -d -p 0.0.0.0:5000:80 --name restapi webproj'
+      - run: docker ps
+      - run: sudo apt-get update
+      - run: >-
+          wget
+          https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+          -O miniconda.sh
+      - run: |
+          bash miniconda.sh -b -p $HOME/miniconda
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          hash -r
+          conda config --set always_yes yes --set changeps1 no
+          conda update -q conda
+          conda info -a
+          conda env create -f environment-dev.yaml
+          conda activate webproj
+          conda install coveralls
+          pytest --cov
+      - run: >-
+          docker exec restapi curl -s
+          localhost/v1.0/trans/EPSG:4258/DK:S34S/55.0,12.0 > S34S.out
+      - run: cat S34S.out
+      - run: diff test_s34s.out S34S.out
