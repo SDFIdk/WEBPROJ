@@ -11,15 +11,6 @@ ENV WEBPROJ_LIB /proj
 
 RUN mkdir /proj
 
-ADD https://download.osgeo.org/proj/proj-datumgrid-europe-1.4.tar.gz /
-ADD https://download.osgeo.org/proj/proj-datumgrid-north-america-1.2.tar.gz /
-
-RUN tar -zxvf /proj-datumgrid-europe-1.4.tar.gz -C /proj \
-    && tar -zxvf /proj-datumgrid-north-america-1.2.tar.gz -C /proj
-
-RUN rm /proj-datumgrid-europe-1.4.tar.gz \
-    && rm /proj-datumgrid-north-america-1.2.tar.gz
-
 COPY /webproj /webproj/webproj
 COPY /tests /webproj/tests
 COPY /app /webproj/app
@@ -28,5 +19,7 @@ COPY /README.md /webproj/README.md
 COPY /app/main.py /app/main.py
 
 RUN pip install --upgrade pip
-RUN pip install pyproj flask-restx flask-cors Werkzeug
+RUN pip install "pyproj>=3.3.0,<3.4.0"
+RUN pip install flask-restx flask-cors Werkzeug
 RUN pip install /webproj
+RUN pyproj sync --source-id dk_sdfe

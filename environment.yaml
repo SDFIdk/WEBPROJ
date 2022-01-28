@@ -11,4 +11,4 @@ dependencies:
   - flask-cors>=3.0
   - proj-datumgrid-europe=1.4
   - proj-datumgrid-north-america=1.2
-  - pyproj>=2.0
+  - pyproj>=3.3
