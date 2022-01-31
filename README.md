@@ -2,10 +2,10 @@
 
 WEBPROJ is a REST API that exposes coordinate transformations for coordinate
 reference systems in Denmark and Greenland. The production version of WEBPROJ
-is running as part of [Kortforsyningen](kortforsyningen.dk). To use the API you
-need an access token, which users of Kortforsyningen can generate when they are
+is running as part of [Dataforsyningen](https://dataforsyningen.dk). To use the API you
+need an access token, which users of Dataforsyningen can generate when they are
 logged in to their personal accounts. The documentation the REST API can be found
-at https://docs.kortforsyningen.dk/#webproj.
+at https://docs.dataforsyningen.dk/#webproj.
 
 ## API
 
