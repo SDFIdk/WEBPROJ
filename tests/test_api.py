@@ -35,7 +35,7 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
     print(expected_json_output)
     print(result)
     for key in expected_json_output.keys():
-        if not key in result.keys():
+        if key not in result.keys():
             raise AssertionError
 
     for key, value in result.items():
@@ -50,9 +50,11 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
 def api_all(request):
     return request.param
 
+
 @pytest.fixture(scope="module", params=["v1.1"])
 def api_from_v1_1(request):
     return request.param
+
 
 def test_transformer_caching():
     """
@@ -272,6 +274,7 @@ def test_integer_coordinates(api_all):
     api_entry = f"/{api_all}/trans/EPSG:4258/EPSG:25832/56,12,0,2020"
     expected = {"v1": 687071.4391094431, "v2": 6210141.326748009, "v3": 0.0, "v4": 2020}
     _assert_coordinate(api_entry, expected)
+
 
 def test_combined_epsg_codes(api_all):
     """
