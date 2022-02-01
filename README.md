@@ -34,6 +34,13 @@ $ conda activate webproj
 For production use, the API should be installed as a component in a
 WSGI compatible http server. How to configure this depends on the used http server.
 
+
+Remember to run projsync in order to install the datum grids.
+
+```
+$ projsync --source-id dk_sdfe
+```
+
 ### Tests
 
 WEBPROJ uses the `pytest` environment for tests. Run the test-suite with

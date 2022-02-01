@@ -5,7 +5,7 @@
 # 'app'  is present and everything should run smoothly with all the bells and
 # whistles of a properly configured HTTP server
 
-FROM tiangolo/meinheld-gunicorn-flask:python3.8
+FROM tiangolo/meinheld-gunicorn-flask:python3.9
 
 ENV WEBPROJ_LIB /proj
 

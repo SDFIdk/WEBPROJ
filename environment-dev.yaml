@@ -3,16 +3,14 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
+  - python=3.9
   - pip>=20.0
   - werkzeug>=1.0
   - flask>=1.0
   - flask-restx>=0.1.1
   - flask-cors>=3.0
-  - proj-datumgrid-europe=1.4
-  - proj-datumgrid-north-america=1.2
   - pyproj>=3.3
   - black
   - pytest
-  - coverage<5.0.0
+  - coverage
   - pytest-cov
