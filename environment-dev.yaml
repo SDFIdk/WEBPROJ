@@ -12,5 +12,5 @@ dependencies:
   - pyproj>=3.3
   - black
   - pytest
-  - coverage<5.0.0
+  - coverage
   - pytest-cov
