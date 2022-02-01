@@ -26,7 +26,6 @@ jobs:
           conda info -a
           conda env create -f environment-dev.yaml
           conda activate webproj
-          conda install coveralls
           pytest --cov
       - run: >-
           docker exec restapi curl -s
