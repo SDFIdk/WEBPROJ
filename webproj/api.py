@@ -190,7 +190,6 @@ class CRSIndex(Resource):
 
 
 @api.route("/v1.0/crs/<string:crs>")
-@api.route("/v1.1/crs/<string:crs>")
 class CRS(Resource):
     def get(self, crs):
         """
@@ -200,6 +199,20 @@ class CRS(Resource):
             return CRS_LIST[crs.upper()]
         except KeyError:
             abort(404, message=f"'{crs}' not available")
+
+
+@api.route("/v1.1/crs/<string:crs>")
+class CRSv1_1(CRS):
+    def get(self, crs):
+        """
+        Retrieve information about a given coordinate reference system
+
+        Version 1.1 includes the SRID in the CRS info.
+        """
+
+        output = super().get(crs)
+        output["srid"] = crs
+        return output
 
 
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")

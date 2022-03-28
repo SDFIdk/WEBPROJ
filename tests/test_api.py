@@ -20,7 +20,9 @@ def _assert_result(entry, expected_json_output):
     """
     Check that a given API resource return the expected result.
     """
+    print(entry)
     decoded_response = _get_and_decode_response(entry)
+    print(decoded_response)
     assert decoded_response == expected_json_output
 
 
@@ -95,7 +97,9 @@ def test_crs_that_doesnt_exist(api_all):
     """
 
     errmsg = f"'unknowncrs' not available. You have requested this URI "
-    errmsg += f"[/{api_all}/crs/unknowncrs] but did you mean /{api_all}/crs/<string:crs>"
+    errmsg += (
+        f"[/{api_all}/crs/unknowncrs] but did you mean /{api_all}/crs/<string:crs>"
+    )
 
     response = _get_and_decode_response(f"/{api_all}/crs/unknowncrs")
     assert response["message"].startswith(errmsg)
@@ -148,9 +152,7 @@ def test_sys34(api_all):
     Test that system 34 is handled correctly. In this case
     we transform from S34J to EPSG:25832 and vice versa.
     """
-    api_entry_fwd = (
-        f"/{api_all}/trans/DK:S34J/EPSG:25832/295799.3977,175252.0903"
-    )
+    api_entry_fwd = f"/{api_all}/trans/DK:S34J/EPSG:25832/295799.3977,175252.0903"
     exp_fwd = {
         "v1": 499999.99999808666,
         "v2": 6206079.587029327,
@@ -168,7 +170,9 @@ def test_sys34(api_all):
     }
     _assert_coordinate(api_entry_inv, exp_inv)
 
-    api_entry_js = f"/{api_all}/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
+    api_entry_js = (
+        f"/{api_all}/trans/DK:S34J/DK:S34S/138040.74248674404,63621.728972878314"
+    )
     exp_js = {
         "v1": 138010.86611871765,
         "v2": 63644.234364821285,
@@ -212,7 +216,9 @@ def test_transformation_between_global_and_regional_crs(api_all):
     CRS's are compatible.
     """
     # first test the case from a global CRS to a regional CRS
-    api_entry = f"/{api_all}/trans/EPSG:4326/EPSG:25832/55.68950140789923,12.58696909994519"
+    api_entry = (
+        f"/{api_all}/trans/EPSG:4326/EPSG:25832/55.68950140789923,12.58696909994519"
+    )
     expected = {"v1": 725448.0, "v2": 6177354.999999999, "v3": None, "v4": None}
     _assert_coordinate(api_entry, expected)
 
@@ -289,3 +295,57 @@ def test_combined_epsg_codes(api_all):
         "v4": None,
     }
     _assert_coordinate(api_entry, expected, tolerance=0.01)
+
+
+def test_crs_return_srid(api_from_v1_1):
+    """
+    Test that CRS routes return the calling srid
+    """
+    testdata = {
+        "EPSG:25832": {
+            "country": "DK",
+            "title": "ETRS89 / UTM Zone 32 Nord",
+            "title_short": "ETRS89/UTM32N",
+            "v1": "Easting",
+            "v1_short": "x",
+            "v2": "Northing",
+            "v2_short": "y",
+            "v3": "Ellipsoidehøjde",
+            "v3_short": "h",
+            "v4": None,
+            "v4_short": None,
+            "srid": "EPSG:25832",
+        },
+        "EPSG:23032+5733": {
+            "country": "DK",
+            "title": "ED50 / UTM Zone 32 Nord + Dansk Normal Nul",
+            "title_short": "ED50/UTM32N + DNN",
+            "v1": "Easting",
+            "v1_short": "x",
+            "v2": "Northing",
+            "v2_short": "y",
+            "v3": "Ellipsoidehøjde",
+            "v3_short": "h",
+            "v4": None,
+            "v4_short": None,
+            "srid": "EPSG:23032+5733",
+        },
+        "DK:S34S": {
+            "country": "DK",
+            "title": "System 34 Sjælland",
+            "title_short": "S34S",
+            "v1": "Westing",
+            "v1_short": "x",
+            "v2": "Northing",
+            "v2_short": "y",
+            "v3": None,
+            "v3_short": None,
+            "v4": None,
+            "v4_short": None,
+            "srid": "DK:S34S",
+        },
+    }
+
+    for srid, crsinfo in testdata.items():
+        api_entry = f"/{api_from_v1_1}/crs/{srid}"
+        _assert_result(api_entry, crsinfo)
