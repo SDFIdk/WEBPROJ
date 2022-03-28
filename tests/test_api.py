@@ -1,5 +1,6 @@
 import sys
 import json
+import pprint
 
 import pytest
 
@@ -22,7 +23,9 @@ def _assert_result(entry, expected_json_output):
     """
     print(entry)
     decoded_response = _get_and_decode_response(entry)
-    print(decoded_response)
+    pprint.pprint(decoded_response)
+    print("-----")
+    pprint.pprint(expected_json_output)
     assert decoded_response == expected_json_output
 
 
@@ -315,6 +318,8 @@ def test_crs_return_srid(api_from_v1_1):
             "v4": None,
             "v4_short": None,
             "srid": "EPSG:25832",
+            "area_of_use": "Europe between 6°E and 12°E: Austria; Belgium; Denmark - onshore and offshore; Germany - onshore and offshore; Norway including - onshore and offshore; Spain - offshore.",
+            "bounding_box": [6.0, 38.76, 12.0, 84.33],
         },
         "EPSG:23032+5733": {
             "country": "DK",
@@ -329,6 +334,8 @@ def test_crs_return_srid(api_from_v1_1):
             "v4": None,
             "v4_short": None,
             "srid": "EPSG:23032+5733",
+            "area_of_use": "Denmark - onshore.",
+            "bounding_box": [8.0, 54.51, 15.24, 57.8],
         },
         "DK:S34S": {
             "country": "DK",
@@ -343,6 +350,8 @@ def test_crs_return_srid(api_from_v1_1):
             "v4": None,
             "v4_short": None,
             "srid": "DK:S34S",
+            "area_of_use": "Denmark - Sealand onshore",
+            "bounding_box": [11.0, 54.5, 12.8, 56.5],
         },
     }
 
