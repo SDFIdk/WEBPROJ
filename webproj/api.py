@@ -1,10 +1,11 @@
+from cmath import inf
 import os
 import json
 from pathlib import Path
 
 from flask import Flask
 from flask_cors import CORS
-from flask_restx import Api, Resource, fields, abort
+from flask_restx import Api, Resource, abort
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
@@ -190,7 +191,6 @@ class CRSIndex(Resource):
 
 
 @api.route("/v1.0/crs/<string:crs>")
-@api.route("/v1.1/crs/<string:crs>")
 class CRS(Resource):
     def get(self, crs):
         """
@@ -200,6 +200,50 @@ class CRS(Resource):
             return CRS_LIST[crs.upper()]
         except KeyError:
             abort(404, message=f"'{crs}' not available")
+
+
+@api.route("/v1.1/crs/<string:crs>")
+class CRSv1_1(CRS):
+    def get(self, crs):
+        """
+        Retrieve information about a given coordinate reference system
+
+        Version 1.1 includes the SRID, area of use and bounding box in
+        the CRS info.
+        """
+
+        output = super().get(crs)
+        output["srid"] = crs
+
+        # determine area of use and bounding box
+        try:
+            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+            if crs_from_db.is_compound:
+                area = inf
+                for subcrs in crs_from_db.sub_crs_list:
+                    aou = subcrs.area_of_use
+                    bbox_area = aou.east - aou.west * aou.north - aou.south
+                    if bbox_area < area:
+                        output["area_of_use"] = subcrs.area_of_use.name
+                        output["bounding_box"] = list(subcrs.area_of_use.bounds)
+            else:
+                output["area_of_use"] = crs_from_db.area_of_use.name
+                output["bounding_box"] = list(crs_from_db.area_of_use.bounds)
+        except pyproj.exceptions.CRSError:
+            # special cases not in proj.db
+            if crs == "DK:S34J":
+                output["area_of_use"] = "Denmark - Jutland onshore"
+                output["bounding_box"] = [8.0, 54.5, 11.0, 57.75]
+            elif crs == "DK:S34S":
+                output["area_of_use"] = "Denmark - Sealand onshore"
+                output["bounding_box"] = [11.0, 54.5, 12.8, 56.5]
+            elif crs == "DK:S45B":
+                output["area_of_use"] = "Denmark - Bornholm onshore"
+                output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
+            else:
+                abort(404, message=f"'{crs}' not available")
+
+        return output
 
 
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
