@@ -29,6 +29,24 @@ def _assert_result(entry, expected_json_output):
     assert decoded_response == expected_json_output
 
 
+def _assert_key_value_set(entry, expected_key_value_set):
+    """
+    Check that a returned response contains the expected key
+    value set
+    """
+    print(entry)
+    decoded_response = _get_and_decode_response(entry)
+    pprint.pprint(decoded_response)
+    print("-----")
+    pprint.pprint(expected_key_value_set)
+    for key in expected_key_value_set.keys():
+        if key not in decoded_response.keys():
+            raise AssertionError
+
+    for key, value in expected_key_value_set.items():
+        assert decoded_response[key] == value
+
+
 def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
     """
     Check that a returned coordinate matches the expected result
@@ -51,13 +69,18 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
             raise AssertionError
 
 
-@pytest.fixture(scope="module", params=["v1.0", "v1.1"])
+@pytest.fixture(scope="module", params=["v1.0", "v1.1", "v1.2"])
 def api_all(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=["v1.1"])
+@pytest.fixture(scope="module", params=["v1.1", "v1.2"])
 def api_from_v1_1(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=["v1.2"])
+def api_from_v1_2(request):
     return request.param
 
 
@@ -306,55 +329,46 @@ def test_crs_return_srid(api_from_v1_1):
     """
     testdata = {
         "EPSG:25832": {
-            "country": "DK",
-            "title": "ETRS89 / UTM Zone 32 Nord",
-            "title_short": "ETRS89/UTM32N",
-            "v1": "Easting",
-            "v1_short": "x",
-            "v2": "Northing",
-            "v2_short": "y",
-            "v3": "Ellipsoidehøjde",
-            "v3_short": "h",
-            "v4": None,
-            "v4_short": None,
             "srid": "EPSG:25832",
-            "area_of_use": "Europe between 6°E and 12°E: Austria; Belgium; Denmark - onshore and offshore; Germany - onshore and offshore; Norway including - onshore and offshore; Spain - offshore.",
-            "bounding_box": [6.0, 38.76, 12.0, 84.33],
         },
         "EPSG:23032+5733": {
-            "country": "DK",
-            "title": "ED50 / UTM Zone 32 Nord + Dansk Normal Nul",
-            "title_short": "ED50/UTM32N + DNN",
-            "v1": "Easting",
-            "v1_short": "x",
-            "v2": "Northing",
-            "v2_short": "y",
-            "v3": "Ellipsoidehøjde",
-            "v3_short": "h",
-            "v4": None,
-            "v4_short": None,
             "srid": "EPSG:23032+5733",
-            "area_of_use": "Denmark - onshore.",
-            "bounding_box": [8.0, 54.51, 15.24, 57.8],
         },
         "DK:S34S": {
-            "country": "DK",
-            "title": "System 34 Sjælland",
-            "title_short": "S34S",
-            "v1": "Westing",
-            "v1_short": "x",
-            "v2": "Northing",
-            "v2_short": "y",
-            "v3": None,
-            "v3_short": None,
-            "v4": None,
-            "v4_short": None,
             "srid": "DK:S34S",
-            "area_of_use": "Denmark - Sealand onshore",
-            "bounding_box": [11.0, 54.5, 12.8, 56.5],
         },
     }
 
     for srid, crsinfo in testdata.items():
         api_entry = f"/{api_from_v1_1}/crs/{srid}"
-        _assert_result(api_entry, crsinfo)
+        _assert_key_value_set(api_entry, crsinfo)
+
+
+def test_crs_units(api_from_v1_2):
+    """
+    Test that CRS routes return the CRS axis units.
+    """
+    testdata = {
+        "EPSG:25832": {
+            "v1_unit": "metre",
+            "v2_unit": "metre",
+            "v3_unit": None,
+            "v4_unit": None,
+        },
+        "EPSG:23032+5733": {
+            "v1_unit": "metre",
+            "v2_unit": "metre",
+            "v3_unit": "metre",
+            "v4_unit": None,
+        },
+        "DK:S34S": {
+            "v1_unit": "metre",
+            "v2_unit": "metre",
+            "v3_unit": None,
+            "v4_unit": None,
+        },
+    }
+
+    for srid, crsinfo in testdata.items():
+        api_entry = f"/{api_from_v1_2}/crs/{srid}"
+        _assert_key_value_set(api_entry, crsinfo)

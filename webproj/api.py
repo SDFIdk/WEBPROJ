@@ -176,6 +176,7 @@ class EndPoint(Resource):
 
 @api.route("/v1.0/crs/")
 @api.route("/v1.1/crs/")
+@api.route("/v1.2/crs/")
 class CRSIndex(Resource):
     def get(self):
         """
@@ -246,8 +247,45 @@ class CRSv1_1(CRS):
         return output
 
 
+@api.route("/v1.2/crs/<string:crs>")
+class CRSv1_2(CRSv1_1):
+    def get(self, crs):
+        """
+        Retrieve information about a given coordinate reference system
+
+        Version 1.2 includes coodinate units of the returned CRS.
+        """
+        output = super().get(crs)
+        # initialize unit elements in output dict
+        for i in range(1, 5):
+            output[f"v{i}_unit"] = None
+
+        try:
+            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+            for i, axis in enumerate(crs_from_db.axis_info, start=1):
+                output[f"v{i}_unit"] = axis.unit_name
+
+        except pyproj.exceptions.CRSError:
+            # special cases not in proj.db
+            if crs == "DK:S34J":
+                output["v1_unit"] = "metre"
+                output["v2_unit"] = "metre"
+            elif crs == "DK:S34S":
+                output["v1_unit"] = "metre"
+                output["v2_unit"] = "metre"
+            elif crs == "DK:S45B":
+                output["v1_unit"] = "metre"
+                output["v2_unit"] = "metre"
+            else:
+                abort(404, message=f"'{crs}' not available")
+
+        # sort output for improved human readability
+        return dict(sorted(output.items()))
+
+
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
 @api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
+@api.route("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
 class Transformation2D(Resource):
     doc = {
         "src": "Source CRS",
@@ -272,6 +310,7 @@ class Transformation2D(Resource):
 
 @api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
 @api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
+@api.route("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
 class Transformation3D(Resource):
     doc = {
         "src": "Source CRS",
@@ -300,6 +339,9 @@ class Transformation3D(Resource):
 )
 @api.route(
     "/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
+)
+@api.route(
+    "/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
 )
 class Transformation4D(Resource):
     doc = {
