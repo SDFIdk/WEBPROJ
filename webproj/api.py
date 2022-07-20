@@ -21,7 +21,19 @@ app = Flask(__name__)
 app.url_map.converters["number"] = IntFloatConverter
 CORS(app)
 
-api = Api(app, version=version, title="WEBPROJ")
+api = Api(
+    app,
+    version=version,
+    title="WEBPROJ",
+    description="## API til koordinattransformationer\n\nAPIet "
+                "__WEBPROJ__ giver adgang til at transformere "
+                "multidimensionelle koordinatsæt. \n\nTil adgang "
+                "benyttes Dataforsyningens brugeradgang som ved andre "
+                "tjenester.\n\n[Versionshistorik](/webproj.txt)",
+    terms_url="https://dataforsyningen.dk/Vilkaar",
+    contact="support@sdfi.dk",
+    license="MIT License",
+)
 
 _DATA = Path(__file__).parent / Path("data.json")
 
