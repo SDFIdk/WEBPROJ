@@ -1,5 +1,4 @@
 from cmath import inf
-from lib2to3.pytree import Base
 import os
 import json
 from pathlib import Path
@@ -7,17 +6,15 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
-
-# from utils import IntFloatConverter
 
 version = "1.1.0"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
+
 
 # Set up the app
 app = FastAPI(
@@ -32,10 +29,8 @@ app = FastAPI(
     contact="support@sdfi.dk",
     license="MIT License",
 )
-# app.url_map.converters["number"] = IntFloatConverter
 origins = ["*"]
 app.add_middleware(CORSMiddleware, allow_origins=origins)
-# api = app
 
 _DATA = Path(__file__).parent / Path("data.json")
 
@@ -172,7 +167,7 @@ class TransformerFactory:
     transformers = {}
 
     @classmethod
-    def create(cls, src, dst):
+    def create(cls, src:str, dst:str):
         if src not in cls.transformers.keys():
             cls.transformers[src] = {}
 
@@ -183,199 +178,159 @@ class TransformerFactory:
 
 
 @app.get("/")
-class EndPoint(BaseModel):
-    def get(self):
-        return {}
+def Endpoint():
+    return {}
 
 
 @app.get("/v1.0/crs/")
 @app.get("/v1.1/crs/")
 @app.get("/v1.2/crs/")
-class CRSIndex(BaseModel):
-    def get(self):
-        """
-        List available coordinate reference systems
-        """
-        index = {}
-        for srid, crsinfo in CRS_LIST.items():
-            if crsinfo["country"] not in index:
-                index[crsinfo["country"]] = []
-            index[crsinfo["country"]].append(srid)
+def CRSIndex():
+    """
+    List available coordinate reference systems
+    """
+    index = {}
+    for srid, crsinfo in CRS_LIST.items():
+        if crsinfo["country"] not in index:
+            index[crsinfo["country"]] = []
+        index[crsinfo["country"]].append(srid)
 
-        return index
+    return index
 
 
-@app.post("/v1.0/crs/<string:crs>")
-class CRS(BaseModel):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
-        """
-        try:
-            return CRS_LIST[crs.upper()]
-        except KeyError:
+@app.get("/v1.0/crs/{crs}")
+def CRS(crs):
+    """
+    Retrieve information about a given coordinate reference system
+    """
+    try:
+        return CRS_LIST[crs.upper()]
+    except KeyError:
+        JSONResponse(status_code=404,error=f"'{crs}' not available")
+
+
+@app.get("/v1.1/crs/{crs}")
+def CRSv1_1(crs):
+    """
+    Retrieve information about a given coordinate reference system
+
+    Version 1.1 includes the SRID, area of use and bounding box in
+    the CRS info.
+    """
+    output = CRS(crs)
+    output["srid"] = crs
+
+    # determine area of use and bounding box
+    try:
+        crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+        if crs_from_db.is_compound:
+            area = inf
+            for subcrs in crs_from_db.sub_crs_list:
+                aou = subcrs.area_of_use
+                bbox_area = aou.east - aou.west * aou.north - aou.south
+                if bbox_area < area:
+                    output["area_of_use"] = subcrs.area_of_use.name
+                    output["bounding_box"] = list(subcrs.area_of_use.bounds)
+        else:
+            output["area_of_use"] = crs_from_db.area_of_use.name
+            output["bounding_box"] = list(crs_from_db.area_of_use.bounds)
+    except pyproj.exceptions.CRSError:
+        # special cases not in proj.db
+        if crs == "DK:S34J":
+            output["area_of_use"] = "Denmark - Jutland onshore"
+            output["bounding_box"] = [8.0, 54.5, 11.0, 57.75]
+        elif crs == "DK:S34S":
+            output["area_of_use"] = "Denmark - Sealand onshore"
+            output["bounding_box"] = [11.0, 54.5, 12.8, 56.5]
+        elif crs == "DK:S45B":
+            output["area_of_use"] = "Denmark - Bornholm onshore"
+            output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
+        else:
             JSONResponse(status_code=404,error=f"'{crs}' not available")
 
-
-@app.post("/v1.1/crs/<string:crs>")
-class CRSv1_1(CRS):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
-
-        Version 1.1 includes the SRID, area of use and bounding box in
-        the CRS info.
-        """
-
-        output = super().get(crs)
-        output["srid"] = crs
-
-        # determine area of use and bounding box
-        try:
-            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
-            if crs_from_db.is_compound:
-                area = inf
-                for subcrs in crs_from_db.sub_crs_list:
-                    aou = subcrs.area_of_use
-                    bbox_area = aou.east - aou.west * aou.north - aou.south
-                    if bbox_area < area:
-                        output["area_of_use"] = subcrs.area_of_use.name
-                        output["bounding_box"] = list(subcrs.area_of_use.bounds)
-            else:
-                output["area_of_use"] = crs_from_db.area_of_use.name
-                output["bounding_box"] = list(crs_from_db.area_of_use.bounds)
-        except pyproj.exceptions.CRSError:
-            # special cases not in proj.db
-            if crs == "DK:S34J":
-                output["area_of_use"] = "Denmark - Jutland onshore"
-                output["bounding_box"] = [8.0, 54.5, 11.0, 57.75]
-            elif crs == "DK:S34S":
-                output["area_of_use"] = "Denmark - Sealand onshore"
-                output["bounding_box"] = [11.0, 54.5, 12.8, 56.5]
-            elif crs == "DK:S45B":
-                output["area_of_use"] = "Denmark - Bornholm onshore"
-                output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
-            else:
-                JSONResponse(status_code=404,error=f"'{crs}' not available")
-
-        return output
+    return output
 
 
-@app.post("/v1.2/crs/<string:crs>")
-class CRSv1_2(CRSv1_1):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
+@app.get("/v1.2/crs/{crs}")
+def CRSv1_2(crs):
+    """
+    Retrieve information about a given coordinate reference system
 
-        Version 1.2 includes coodinate units of the returned CRS.
-        """
-        output = super().get(crs)
-        # initialize unit elements in output dict
-        for i in range(1, 5):
-            output[f"v{i}_unit"] = None
+    Version 1.2 includes coodinate units of the returned CRS.
+    """
+    output = CRSv1_1(crs)
+    
+    # initialize unit elements in output dict
+    for i in range(1, 5):
+        output[f"v{i}_unit"] = None
 
-        try:
-            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
-            for i, axis in enumerate(crs_from_db.axis_info, start=1):
-                output[f"v{i}_unit"] = axis.unit_name
+    try:
+        crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+        for i, axis in enumerate(crs_from_db.axis_info, start=1):
+            output[f"v{i}_unit"] = axis.unit_name
 
-        except pyproj.exceptions.CRSError:
-            # special cases not in proj.db
-            if crs == "DK:S34J":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            elif crs == "DK:S34S":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            elif crs == "DK:S45B":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            else:
-                JSONResponse(status_code=404,error=f"'{crs}' not available")
+    except pyproj.exceptions.CRSError:
+        # special cases not in proj.db
+        if crs == "DK:S34J":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        elif crs == "DK:S34S":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        elif crs == "DK:S45B":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        else:
+            JSONResponse(status_code=404,error=f"'{crs}' not available")
 
-        # sort output for improved human readability
-        return dict(sorted(output.items()))
-
-
-@app.post("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-@app.post("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-@app.post("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-class Transformation2D(BaseModel):
-    # doc = {
-    #     "src": "Source CRS",
-    #     "dst": "Destination CRS",
-    #     "v1": "1st coordinate component",
-    #     "v2": "2nd coordinate component",
-    # }
-
-    # @app.doc(params=doc)
-    def get(self, src, dst, v1, v2):
-        """
-        Transform a 2D coordinate from one CRS to another
-        """
-        try:
-            transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2)))
-        except ValueError as error:
-            JSONResponse(status_code=404,error=error)
-
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+    # sort output for improved human readability
+    return dict(sorted(output.items()))
 
 
-@app.post("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-@app.post("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-@app.post("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-class Transformation3D(BaseModel):
-    # doc = {
-    #     "src": "Source CRS",
-    #     "dst": "Destination CRS",
-    #     "v1": "1st coordinate component",
-    #     "v2": "2nd coordinate component",
-    #     "v3": "3rd coordinate component",
-    # }
+@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2}")
+def Transformation2D(src:str,dst:str,v1:float,v2:float):
+    """
+    Transform a 2D coordinate from one CRS to another
+    """
+    try:
+        transformer = TransformerFactory.create(src, dst)
+        (v1, v2, _, _) = transformer.transform(_make_4d((v1, v2)))
+    except ValueError as error:
+        JSONResponse(status_code=404,error=error)
 
-    # @app.doc(params=doc)
-    def get(self, src, dst, v1, v2, v3):
-        """
-        Transform a 3D coordinate from one CRS to another
-        """
-        try:
-            transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2, v3)))
-        except ValueError as error:
-            JSONResponse(status_code=404,error=error)
-
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+    return {"v1": v1, "v2": v2}
 
 
-@app.post(
-    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-@app.post(
-    "/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-@app.post(
-    "/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-class Transformation4D(BaseModel):
-    # doc = {
-    #     "src": "Source CRS",
-    #     "dst": "Destination CRS",
-    #     "v1": "1st coordinate component",
-    #     "v2": "2nd coordinate component",
-    #     "v3": "3rd coordinate component",
-    #     "v4": "4th coordinate component",
-    # }
+@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3}")
+def Transformation3D(src:str,dst:str,v1:float,v2:float,v3:float):
+    """
+    Transform a 3D coordinate from one CRS to another
+    """
+    try:
+        transformer = TransformerFactory.create(src, dst)
+        (v1, v2, v3, _) = transformer.transform(_make_4d((v1, v2, v3)))
+    except ValueError as error:
+        JSONResponse(status_code=404,error=error)
 
-    # @app.doc(params=doc)
-    def get(self, src, dst, v1, v2, v3=None, v4=None):
-        """
-        Transform a 4D coordinate from one CRS to another
-        """
-        try:
-            transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
-        except ValueError as error:
-            return JSONResponse(status_code=404,error=error)
+    return {"v1": v1, "v2": v2, "v3": v3}
 
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+def Transformation4D(src:str,dst:str,v1:float,v2:float,v3:float,v4:float):
+    """
+    Transform a 4D coordinate from one CRS to another
+    """
+    try:
+        transformer = TransformerFactory.create(src, dst)
+        (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
+    except ValueError as error:
+        return JSONResponse(status_code=404,error=error)
+
+    return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
