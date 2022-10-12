@@ -11,7 +11,7 @@ from pyproj.transformer import Transformer, AreaOfInterest
 
 from webproj.utils import IntFloatConverter
 
-version = "1.1.0"
+version = "1.2.0"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
@@ -25,14 +25,21 @@ api = Api(
     app,
     version=version,
     title="WEBPROJ",
-    description="## API til koordinattransformationer\n\nAPIet "
-                "__WEBPROJ__ giver adgang til at transformere "
-                "multidimensionelle koordinatsæt. \n\nTil adgang "
-                "benyttes Dataforsyningens brugeradgang som ved andre "
-                "tjenester.\n\n[Versionshistorik](/webproj.txt)",
+    description=(
+        "## API til koordinattransformationer"
+        "\n\n"
+        "API'et __WEBPROJ__ giver adgang til at transformere "
+        "multidimensionelle koordinatsæt."
+        "\n\n"
+        "Til adgang benyttes Dataforsyningens brugeradgang som ved andre "
+        "tjenester."
+        "\n\n"
+        "[Versionshistorik](/webproj.txt)"
+    ),
     terms_url="https://dataforsyningen.dk/Vilkaar",
     contact="support@sdfi.dk",
     license="MIT License",
+    license_url="https://raw.githubusercontent.com/SDFIdk/WEBPROJ/master/LICENSE",
 )
 
 _DATA = Path(__file__).parent / Path("data.json")
@@ -377,3 +384,15 @@ class Transformation4D(Resource):
             abort(404, message=error)
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+
+@api.route("/v1.2/info/")
+class Info(Resource):
+    def get(self):
+        """
+        Retrieve information about the running instance of WEBPROJ and it's constituent components.
+        """
+        return {
+            "webproj_version": version,
+            "proj_version": pyproj.__proj_version__,
+        }
