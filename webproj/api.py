@@ -25,14 +25,21 @@ api = Api(
     app,
     version=version,
     title="WEBPROJ",
-    description="## API til koordinattransformationer\n\nAPIet "
-                "__WEBPROJ__ giver adgang til at transformere "
-                "multidimensionelle koordinatsæt. \n\nTil adgang "
-                "benyttes Dataforsyningens brugeradgang som ved andre "
-                "tjenester.\n\n[Versionshistorik](/webproj.txt)",
+    description=(
+        "## API til koordinattransformationer"
+        "\n\n"
+        "API'et __WEBPROJ__ giver adgang til at transformere "
+        "multidimensionelle koordinatsæt."
+        "\n\n"
+        "Til adgang benyttes Dataforsyningens brugeradgang som ved andre "
+        "tjenester."
+        "\n\n"
+        "[Versionshistorik](/webproj.txt)"
+    ),
     terms_url="https://dataforsyningen.dk/Vilkaar",
     contact="support@sdfi.dk",
     license="MIT License",
+    license_url="https://raw.githubusercontent.com/SDFIdk/WEBPROJ/master/LICENSE",
 )
 
 _DATA = Path(__file__).parent / Path("data.json")
