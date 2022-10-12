@@ -377,3 +377,15 @@ class Transformation4D(Resource):
             abort(404, message=error)
 
         return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+
+@api.route("/v1.2/info/")
+class Info(Resource):
+    def get(self):
+        """
+        Retrieve information about the running instance of WEBPROJ and it's constituent components.
+        """
+        return {
+            "webproj_version": version,
+            "proj_version": pyproj.__proj_version__,
+        }
