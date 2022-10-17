@@ -2,6 +2,7 @@ from cmath import inf
 import os
 import json
 from pathlib import Path
+from typing import Union
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -287,26 +288,27 @@ def CRSv1_2(crs):
     return dict(sorted(output.items()))
 
 
-@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2}")
-@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2}")
-@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2}")
-def Transformation2D(src:str,dst:str,v1:float,v2:float):
+@app.get("/v1.0/trans/{src}/{dst}/{v1}/{v2}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1}/{v2}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1}/{v2}")
+async def Transformation2D(src:str,dst:str,v1:str,v2:str):
     """
     Transform a 2D coordinate from one CRS to another
     """
     try:
         transformer = TransformerFactory.create(src, dst)
         (v1, v2, _, _) = transformer.transform(_make_4d((v1, v2)))
+        return {"v1:": v1, "v2": v2}
     except ValueError as error:
         JSONResponse(status_code=404,error=error)
 
-    return {"v1": v1, "v2": v2}
+    
+    
 
-
-@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3}")
-@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3}")
-@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3}")
-def Transformation3D(src:str,dst:str,v1:float,v2:float,v3:float):
+@app.get("/v1.0/trans/{src}/{dst}/{v1}/{v2}/{v3}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1}/{v2}/{v3}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1}/{v2}/{v3}")
+async def Transformation3D(src:str,dst:str,v1:str,v2:str,v3:str):
     """
     Transform a 3D coordinate from one CRS to another
     """
@@ -319,10 +321,10 @@ def Transformation3D(src:str,dst:str,v1:float,v2:float,v3:float):
     return {"v1": v1, "v2": v2, "v3": v3}
 
 
-@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
-@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
-@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
-def Transformation4D(src:str,dst:str,v1:float,v2:float,v3:float,v4:float):
+@app.get("/v1.0/trans/{src}/{dst}/{v1}/{v2}/{v3}/{v4}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1}/{v2}/{v3}/{v4}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1}/{v2}/{v3}/{v4}")
+async def Transformation4D(src:str,dst:str,v1:str,v2:str,v3:str,v4:str):
     """
     Transform a 4D coordinate from one CRS to another
     """
