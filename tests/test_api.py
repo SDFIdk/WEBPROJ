@@ -1,4 +1,5 @@
 import sys
+import re
 import json
 import pprint
 
@@ -372,3 +373,14 @@ def test_crs_units(api_from_v1_2):
     for srid, crsinfo in testdata.items():
         api_entry = f"/{api_from_v1_2}/crs/{srid}"
         _assert_key_value_set(api_entry, crsinfo)
+
+
+def test_info(api_from_v1_2):
+    """
+    Test that the info entrypoint returns sensible values.
+    """
+    response = _get_and_decode_response(f"/{api_from_v1_2}/info/")
+
+    for software, version_number in response.items():
+        print(software, version_number)
+        assert re.match(r"^\d+\.\d+\.\d+$", version_number)

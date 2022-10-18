@@ -1,6 +1,42 @@
 # Release instructions for WEBPROJ
 
-(insert GitHub release instructions here)
+1. Checkout maintenance branch
+
+If issueing a patch release a maintenance branch should already exists. Check it out:
+
+> git checkout 1.1
+
+and ensure sure that all relevant commits have been backported to the maintenance branch in question.
+
+If a major or minor version release is being prepared, a new maintenance branch based on the
+master branch needs to be created:
+
+> git checkout -b 1.1
+
+2. Tag the latest commit on the the maintenance branch with the new version number
+
+On the maintenance branch the latest commit can now be tagged with the version number, e.g.:
+
+> git tag 1.1.1
+> git push --tags
+
+3. Close the GitHub milestone for the version to be released
+
+4. Write release notes on GitHub based on the tag created in step 2
+
+5. Bump version number
+
+We update the version number right away in preparation for the next release. This way we can distinguish
+between released versions and to-be-released versions easily. If we see an unrelease version number we know
+that we are using a development version of WEBPROJ.
+
+`version` in `webproj\api.py` needs to be updated. After a patch release the version number is only updated
+on the maintenance branch. After a major or minor release it should be updated on the master branch and subsequently
+cherry-picked to the maintenance branch.
+
+6. Deploy in production
+
+After a release WEBPROJ needs to be deployed in Jenkins.
 
 ### Update docs on docs.dataforsyningen.dk
 WEBPROJ generates Swagger documentation through flask_restx, and Dataforsyningen uses the newer OpenAPI spec, so for now we manually convert to OpenAPI and tweak the result.

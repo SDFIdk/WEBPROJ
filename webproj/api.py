@@ -2,7 +2,6 @@ from cmath import inf
 import os
 import json
 from pathlib import Path
-from typing import Union
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -11,11 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
-version = "1.1.0"
+version = "1.2.0"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
-
 
 # Set up the app
 app = FastAPI(
@@ -336,3 +334,13 @@ async def Transformation4D(src:str,dst:str,v1:str,v2:str,v3:str,v4:str):
 
     return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
+
+@app.get("/v1.2/info")
+def Info():
+    """
+    Retrieve information about the running instance of WEBPROJ and it's constituent components.
+    """
+    return {
+        "webproj_version": version,
+        "proj_version": pyproj.__proj_version__,
+    }
