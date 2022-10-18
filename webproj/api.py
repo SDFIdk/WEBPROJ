@@ -3,6 +3,7 @@ import os
 import json
 from pathlib import Path
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -344,3 +345,6 @@ def Info():
         "webproj_version": version,
         "proj_version": pyproj.__proj_version__,
     }
+
+if __name__ == "__main__":
+    uvicorn.run("api:app", host="127.0.0.1", port=5000)
