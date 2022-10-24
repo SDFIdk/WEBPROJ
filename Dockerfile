@@ -18,6 +18,9 @@ COPY /setup.py /webproj/setup.py
 COPY /README.md /webproj/README.md
 COPY /app/main.py /app/main.py
 
+# Running upgrade for security
+RUN apt update -y && apt upgrade -y
+
 RUN pip install --upgrade pip
 RUN pip install pyproj
 RUN pip install flask-restx flask-cors
