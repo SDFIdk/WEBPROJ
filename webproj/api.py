@@ -18,11 +18,15 @@ if "WEBPROJ_LIB" in os.environ:
 # Set up the app
 app = FastAPI(
     title=__name__,
-    description="## API til koordinattransformationer\n\nAPIet "
-                "__WEBPROJ__ giver adgang til at transformere "
-                "multidimensionelle koordinatsæt. \n\nTil adgang "
-                "benyttes Dataforsyningens brugeradgang som ved andre "
-                "tjenester.\n\n[Versionshistorik](/webproj.txt)",
+    description="## API til koordinattransformationer"
+                "\n\n"
+                "APIet __WEBPROJ__ giver adgang til at transformere "
+                "multidimensionelle koordinatsæt. "
+                "\n\n"
+                "Til adgang benyttes Dataforsyningens brugeradgang som ved andre "
+                "tjenester."
+                "\n\n"
+                "[Versionshistorik](/webproj.txt)",
     version=version,
     terms_of_service="https://dataforsyningen.dk/Vilkaar",
     contact="support@sdfi.dk",
