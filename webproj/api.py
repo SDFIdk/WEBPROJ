@@ -4,8 +4,7 @@ import json
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import pyproj
@@ -28,6 +27,7 @@ app = FastAPI(
     terms_of_service="https://dataforsyningen.dk/Vilkaar",
     contact="support@sdfi.dk",
     license="MIT License",
+    license_url="https://raw.githubusercontent.com/SDFIdk/WEBPROJ/master/LICENSE",
 )
 origins = ["*"]
 app.add_middleware(CORSMiddleware, allow_origins=origins)
@@ -36,6 +36,7 @@ _DATA = Path(__file__).parent / Path("data.json")
 
 with open(_DATA, "r", encoding="UTF-8") as data:
     CRS_LIST = json.load(data)
+    app.CRS_LIST = CRS_LIST
 
 AOI = {
     "DK": AreaOfInterest(3.0, 54.5, 15.5, 58.0),
@@ -75,15 +76,15 @@ class OptimusPrime:
         dst_hub = dst
 
         if src not in CRS_LIST.keys():
-            raise ValueError(f"Unknown source CRS identifier: '{src}'")
+            raise HTTPException(status_code=400,detail=f"Unknown source CRS identifier: '{src}'")
 
         if dst not in CRS_LIST.keys():
-            raise ValueError(f"Unknown destination CRS identifier: '{dst}'")
+            raise HTTPException(status_code=400,detail=f"Unknown destination CRS identifier: '{dst}'")
 
         src_region = CRS_LIST[src]["country"]
         dst_region = CRS_LIST[dst]["country"]
         if src_region != dst_region and "Global" not in (src_region, dst_region):
-            raise ValueError("CRS's are not compatible across countries")
+            raise HTTPException(status_code=400,detail="CRS's are not compatible across countries")
 
         # determine region of transformation
         if src_region == dst_region:
@@ -156,8 +157,9 @@ class OptimusPrime:
             (v1, v2, v3, v4) = _make_4d(out)
 
         if float("inf") in out or float("-inf") in out:
-            raise ValueError(
-                "Input coordinate outside area of use of either source or destination CRS"
+            raise HTTPException(
+                status_code=404,
+                detail="Input coordinate outside area of use of either source or destination CRS"
             )
 
         return (v1, v2, v3, v4)
@@ -206,7 +208,10 @@ def CRS(crs):
     try:
         return CRS_LIST[crs.upper()]
     except KeyError:
-        JSONResponse(status_code=404,error=f"'{crs}' not available")
+        return HTTPException(
+            status_code=400,
+            detail=f"'{crs}' not available."
+        )
 
 
 @app.get("/v1.1/crs/{crs}")
@@ -218,6 +223,11 @@ def CRSv1_1(crs):
     the CRS info.
     """
     output = CRS(crs)
+    if type(output) == HTTPException:
+        return HTTPException(
+            status_code=400,
+            detail=f"'{crs}' not available."
+        )
     output["srid"] = crs
 
     # determine area of use and bounding box
@@ -246,7 +256,7 @@ def CRSv1_1(crs):
             output["area_of_use"] = "Denmark - Bornholm onshore"
             output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
         else:
-            JSONResponse(status_code=404,error=f"'{crs}' not available")
+            HTTPException(status_code=404,detail=f"'{crs}' not available")
 
     return output
 
@@ -259,6 +269,11 @@ def CRSv1_2(crs):
     Version 1.2 includes coodinate units of the returned CRS.
     """
     output = CRSv1_1(crs)
+    if type(output) == HTTPException:
+        return HTTPException(
+            status_code=400,
+            detail=f"'{crs}' not available."
+        )
     
     # initialize unit elements in output dict
     for i in range(1, 5):
@@ -281,7 +296,7 @@ def CRSv1_2(crs):
             output["v1_unit"] = "metre"
             output["v2_unit"] = "metre"
         else:
-            JSONResponse(status_code=404,error=f"'{crs}' not available")
+            HTTPException(status_code=404,detail=f"'{crs}' not available")
 
     # sort output for improved human readability
     return dict(sorted(output.items()))
@@ -297,9 +312,9 @@ async def Transformation2D(src:str,dst:str,v1:str,v2:str):
     try:
         transformer = TransformerFactory.create(src, dst)
         (v1, v2, _, _) = transformer.transform(_make_4d((v1, v2)))
-        return {"v1:": v1, "v2": v2}
+        return {"v1": v1, "v2": v2, "v3": None, "v4": None}
     except ValueError as error:
-        JSONResponse(status_code=404,error=error)
+        HTTPException(status_code=404,detail=error)
 
     
     
@@ -315,9 +330,9 @@ async def Transformation3D(src:str,dst:str,v1:str,v2:str,v3:str):
         transformer = TransformerFactory.create(src, dst)
         (v1, v2, v3, _) = transformer.transform(_make_4d((v1, v2, v3)))
     except ValueError as error:
-        JSONResponse(status_code=404,error=error)
+        HTTPException(status_code=404,detail=error)
 
-    return {"v1": v1, "v2": v2, "v3": v3}
+    return {"v1": v1, "v2": v2, "v3": v3, "v4": None}
 
 
 @app.get("/v1.0/trans/{src}/{dst}/{v1}/{v2}/{v3}/{v4}")
@@ -331,7 +346,7 @@ async def Transformation4D(src:str,dst:str,v1:str,v2:str,v3:str,v4:str):
         transformer = TransformerFactory.create(src, dst)
         (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
     except ValueError as error:
-        return JSONResponse(status_code=404,error=error)
+        return HTTPException(status_code=404,detail=error)
 
     return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
