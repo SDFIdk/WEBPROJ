@@ -1,20 +1,19 @@
-import sys
 import re
-import json
 import pprint
 
 import pytest
+from fastapi.testclient import TestClient
 
-from webproj import api
+from webproj.api import app, TransformerFactory
 
 
 def _get_and_decode_response(entry):
     """
     Retrieves response from API and decodes the JSON data into a dict
     """
-    app = api.app.test_client()
-    response = app.get(entry)
-    decoded_response = json.loads(response.get_data().decode(sys.getdefaultencoding()))
+    client = TestClient(app)
+    response = client.get(entry)
+    decoded_response = response.json()
     return decoded_response
 
 
@@ -53,9 +52,9 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
     Check that a returned coordinate matches the expected result
     within a pre-determined tolerance
     """
-    app = api.app.test_client()
-    response = app.get(entry)
-    result = json.loads(response.get_data().decode(sys.getdefaultencoding()))
+    client = TestClient(app)
+    response = client.get(entry)
+    result = response.json()
     print(expected_json_output)
     print(result)
     for key in expected_json_output.keys():
@@ -90,8 +89,8 @@ def test_transformer_caching():
     Check that caching works by comparing objects with the is operator
     """
 
-    transformer_a = api.TransformerFactory.create("EPSG:4095", "EPSG:4096")
-    transformer_b = api.TransformerFactory.create("EPSG:4095", "EPSG:4096")
+    transformer_a = TransformerFactory.create("EPSG:4095", "EPSG:4096")
+    transformer_b = TransformerFactory.create("EPSG:4095", "EPSG:4096")
 
     assert transformer_a is transformer_b
 
@@ -100,7 +99,7 @@ def test_crs(api_all):
     """
     Test that CRS descriptions are presented correctly
     """
-    for srid, crsinfo in api.CRS_LIST.items():
+    for srid, crsinfo in app.CRS_LIST.items():
         _assert_result(f"/{api_all}/crs/{srid}", crsinfo)
 
 
@@ -110,7 +109,7 @@ def test_crs_index(api_all):
     correctly.
     """
     expected = {}
-    for srid, crsinfo in api.CRS_LIST.items():
+    for srid, crsinfo in app.CRS_LIST.items():
         if crsinfo["country"] not in expected:
             expected[crsinfo["country"]] = []
         expected[crsinfo["country"]].append(srid)
@@ -122,14 +121,8 @@ def test_crs_that_doesnt_exist(api_all):
     """
     Test that we get the proper response when requesting an unknown CRS
     """
-
-    errmsg = f"'unknowncrs' not available. You have requested this URI "
-    errmsg += (
-        f"[/{api_all}/crs/unknowncrs] but did you mean /{api_all}/crs/<string:crs>"
-    )
-
     response = _get_and_decode_response(f"/{api_all}/crs/unknowncrs")
-    assert response["message"].startswith(errmsg)
+    assert response["detail"] == "'unknowncrs' not available."
 
 
 def test_trans_2d(api_all):
@@ -216,7 +209,7 @@ def test_transformation_outside_crs_area_of_use(api_all):
     """
     api_entry = f"/{api_all}/trans/EPSG:4258/DK:S34S/12.0,56.0"
     expected = {
-        "message": "Input coordinate outside area of use of either source or destination CRS"
+        "detail": "Input coordinate outside area of use of either source or destination CRS"
     }
     _assert_result(api_entry, expected)
 
@@ -261,11 +254,11 @@ def test_transformation_between_global_and_regional_crs(api_all):
 
     # test some failing cases DK -> GL
     api_entry = f"/{api_all}/trans/EPSG:4258/EPSG:4909/55.0,12.0"
-    expected = {"message": "CRS's are not compatible across countries"}
+    expected = {"detail": "CRS's are not compatible across countries"}
     _assert_result(api_entry, expected)
 
     api_entry = f"/{api_all}/trans/EPSG:4909/EPSG:4258/75.0,-50.0"
-    expected = {"message": "CRS's are not compatible across countries"}
+    expected = {"detail": "CRS's are not compatible across countries"}
     _assert_result(api_entry, expected)
 
 

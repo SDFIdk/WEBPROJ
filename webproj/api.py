@@ -2,50 +2,87 @@ from cmath import inf
 import os
 import json
 from pathlib import Path
+from typing import Optional
 
-from flask import Flask
-from flask_cors import CORS
-from flask_restx import Api, Resource, abort
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    security,
+    Depends,
+)
+from fastapi.middleware.cors import CORSMiddleware
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
-from webproj.utils import IntFloatConverter
-
-version = "1.2.0"
+__VERSION__ = "1.2.3"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
 
-# Set up the app
-app = Flask(__name__)
-app.url_map.converters["number"] = IntFloatConverter
-CORS(app)
 
-api = Api(
-    app,
-    version=version,
-    title="WEBPROJ",
-    description=(
-        "## API til koordinattransformationer"
-        "\n\n"
-        "API'et __WEBPROJ__ giver adgang til at transformere "
-        "multidimensionelle koordinatsæt."
-        "\n\n"
-        "Til adgang benyttes Dataforsyningens brugeradgang som ved andre "
-        "tjenester."
-        "\n\n"
-        "[Versionshistorik](/webproj.txt)"
+# pylint: disable=unused-argument
+def token_header_param(
+    header_token: Optional[str] = Depends(
+        security.api_key.APIKeyHeader(name="token", auto_error=False)
     ),
-    terms_url="https://dataforsyningen.dk/Vilkaar",
-    contact="support@sdfi.dk",
+):
+    """
+    This defines an api-key header param named 'token
+
+    Set auto_error to `True` to make `token `required.
+
+    Function does absolutely nothing, hence the empty function body.
+    The purpose of this function is to allow "token" to appear as
+    an available header parameter in the auto-generated docs.
+    The API Gateway on Dataforsyningen handles the token authentication
+    so we don't actually have to do anything with the token value here.
+    '"""
+
+
+# pylint: disable=unused-argument
+def token_query_param(
+    query_token: Optional[str] = Depends(
+        security.api_key.APIKeyQuery(name="token", auto_error=False)
+    ),
+):
+    """
+    This defines an api-key query param named 'token'
+
+    Set auto_error to `True` to make `token `required.
+
+    Function does absolutely nothing, hence the empty function body.
+    The purpose of this function is to allow "token" to appear as
+    an available query parameter in the auto-generated docs.
+    The API Gateway on Dataforsyningen handles the token authentication
+    so we don't actually have to do anything with the token value here.
+    """
+
+
+# Set up the app
+app = FastAPI(
+    title=__name__,
+    description="## API til koordinattransformationer"
+    "\n\n"
+    "APIet __WEBPROJ__ giver adgang til at transformere "
+    "multidimensionelle koordinatsæt. "
+    "\n\n"
+    "Til adgang benyttes Dataforsyningens brugeradgang som ved andre "
+    "tjenester.",
+    version=__VERSION__,
+    terms_of_service="https://dataforsyningen.dk/Vilkaar",
     license="MIT License",
     license_url="https://raw.githubusercontent.com/SDFIdk/WEBPROJ/master/LICENSE",
+    docs_url="/documentation",
+    dependencies=[Depends(token_header_param), Depends(token_query_param)],
 )
+origins = ["*"]
+app.add_middleware(CORSMiddleware, allow_origins=origins)
 
 _DATA = Path(__file__).parent / Path("data.json")
 
 with open(_DATA, "r", encoding="UTF-8") as data:
     CRS_LIST = json.load(data)
+    app.CRS_LIST = CRS_LIST
 
 AOI = {
     "DK": AreaOfInterest(3.0, 54.5, 15.5, 58.0),
@@ -85,15 +122,24 @@ class OptimusPrime:
         dst_hub = dst
 
         if src not in CRS_LIST.keys():
-            raise ValueError(f"Unknown source CRS identifier: '{src}'")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unknown source CRS identifier: '{src}'",
+            )
 
         if dst not in CRS_LIST.keys():
-            raise ValueError(f"Unknown destination CRS identifier: '{dst}'")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail=f"Unknown destination CRS identifier: '{dst}'",
+            )
 
         src_region = CRS_LIST[src]["country"]
         dst_region = CRS_LIST[dst]["country"]
         if src_region != dst_region and "Global" not in (src_region, dst_region):
-            raise ValueError("CRS's are not compatible across countries")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="CRS's are not compatible across countries",
+            )
 
         # determine region of transformation
         if src_region == dst_region:
@@ -136,8 +182,8 @@ class OptimusPrime:
                 self.epsg_pipeline = Transformer.from_crs(
                     src, dst_hub, area_of_interest=region
                 )
-            except RuntimeError as e:
-                raise ValueError("Invalid CRS identifier")
+            except RuntimeError as error:
+                raise ValueError("Invalid CRS identifier") from error
 
         if non_epsg_dst:
             pipeline = (
@@ -166,8 +212,9 @@ class OptimusPrime:
             (v1, v2, v3, v4) = _make_4d(out)
 
         if float("inf") in out or float("-inf") in out:
-            raise ValueError(
-                "Input coordinate outside area of use of either source or destination CRS"
+            raise HTTPException(
+                status_code=404,
+                detail="Input coordinate outside area of use of either source or destination CRS",
             )
 
         return (v1, v2, v3, v4)
@@ -177,7 +224,7 @@ class TransformerFactory:
     transformers = {}
 
     @classmethod
-    def create(cls, src, dst):
+    def create(cls, src: str, dst: str):
         if src not in cls.transformers.keys():
             cls.transformers[src] = {}
 
@@ -187,212 +234,179 @@ class TransformerFactory:
         return cls.transformers[src][dst]
 
 
-@api.route("/")
-class EndPoint(Resource):
-    def get(self):
-        return {}
+@app.get("/v1.0/crs/")
+@app.get("/v1.1/crs/")
+@app.get("/v1.2/crs/")
+def crs_index():
+    """
+    List available coordinate reference systems
+    """
+    index = {}
+    for srid, crsinfo in CRS_LIST.items():
+        if crsinfo["country"] not in index:
+            index[crsinfo["country"]] = []
+        index[crsinfo["country"]].append(srid)
+
+    return index
 
 
-@api.route("/v1.0/crs/")
-@api.route("/v1.1/crs/")
-@api.route("/v1.2/crs/")
-class CRSIndex(Resource):
-    def get(self):
-        """
-        List available coordinate reference systems
-        """
-        index = {}
-        for srid, crsinfo in CRS_LIST.items():
-            if crsinfo["country"] not in index:
-                index[crsinfo["country"]] = []
-            index[crsinfo["country"]].append(srid)
-
-        return index
+@app.get("/v1.0/crs/{crs}")
+def crs_v1_0(crs):
+    """
+    Retrieve information about a given coordinate reference system
+    """
+    try:
+        return CRS_LIST[crs.upper()]
+    except KeyError:
+        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
 
 
-@api.route("/v1.0/crs/<string:crs>")
-class CRS(Resource):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
-        """
-        try:
-            return CRS_LIST[crs.upper()]
-        except KeyError:
-            abort(404, message=f"'{crs}' not available")
+@app.get("/v1.1/crs/{crs}")
+def crs_v1_1(crs):
+    """
+    Retrieve information about a given coordinate reference system
+
+    Version 1.1 includes the SRID, area of use and bounding box in
+    the CRS info.
+    """
+    output = crs_v1_0(crs)
+    if isinstance(output, HTTPException):
+        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
+    output["srid"] = crs
+
+    # determine area of use and bounding box
+    try:
+        crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+        if crs_from_db.is_compound:
+            area = inf
+            for subcrs in crs_from_db.sub_crs_list:
+                aou = subcrs.area_of_use
+                bbox_area = aou.east - aou.west * aou.north - aou.south
+                if bbox_area < area:
+                    output["area_of_use"] = subcrs.area_of_use.name
+                    output["bounding_box"] = list(subcrs.area_of_use.bounds)
+        else:
+            output["area_of_use"] = crs_from_db.area_of_use.name
+            output["bounding_box"] = list(crs_from_db.area_of_use.bounds)
+    except pyproj.exceptions.CRSError:
+        # special cases not in proj.db
+        if crs == "DK:S34J":
+            output["area_of_use"] = "Denmark - Jutland onshore"
+            output["bounding_box"] = [8.0, 54.5, 11.0, 57.75]
+        elif crs == "DK:S34S":
+            output["area_of_use"] = "Denmark - Sealand onshore"
+            output["bounding_box"] = [11.0, 54.5, 12.8, 56.5]
+        elif crs == "DK:S45B":
+            output["area_of_use"] = "Denmark - Bornholm onshore"
+            output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
+        else:
+            return HTTPException(status_code=404, detail=f"'{crs}' not available")
+
+    return output
 
 
-@api.route("/v1.1/crs/<string:crs>")
-class CRSv1_1(CRS):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
+@app.get("/v1.2/crs/{crs}")
+def crs_v1_2(crs):
+    """
+    Retrieve information about a given coordinate reference system
 
-        Version 1.1 includes the SRID, area of use and bounding box in
-        the CRS info.
-        """
+    Version 1.2 includes coodinate units of the returned CRS.
+    """
+    output = crs_v1_1(crs)
+    if isinstance(output, HTTPException):
+        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
 
-        output = super().get(crs)
-        output["srid"] = crs
+    # initialize unit elements in output dict
+    for i in range(1, 5):
+        output[f"v{i}_unit"] = None
 
-        # determine area of use and bounding box
-        try:
-            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
-            if crs_from_db.is_compound:
-                area = inf
-                for subcrs in crs_from_db.sub_crs_list:
-                    aou = subcrs.area_of_use
-                    bbox_area = aou.east - aou.west * aou.north - aou.south
-                    if bbox_area < area:
-                        output["area_of_use"] = subcrs.area_of_use.name
-                        output["bounding_box"] = list(subcrs.area_of_use.bounds)
-            else:
-                output["area_of_use"] = crs_from_db.area_of_use.name
-                output["bounding_box"] = list(crs_from_db.area_of_use.bounds)
-        except pyproj.exceptions.CRSError:
-            # special cases not in proj.db
-            if crs == "DK:S34J":
-                output["area_of_use"] = "Denmark - Jutland onshore"
-                output["bounding_box"] = [8.0, 54.5, 11.0, 57.75]
-            elif crs == "DK:S34S":
-                output["area_of_use"] = "Denmark - Sealand onshore"
-                output["bounding_box"] = [11.0, 54.5, 12.8, 56.5]
-            elif crs == "DK:S45B":
-                output["area_of_use"] = "Denmark - Bornholm onshore"
-                output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
-            else:
-                abort(404, message=f"'{crs}' not available")
+    try:
+        crs_from_db = pyproj.CRS.from_user_input(crs.upper())
+        for i, axis in enumerate(crs_from_db.axis_info, start=1):
+            output[f"v{i}_unit"] = axis.unit_name
 
-        return output
+    except pyproj.exceptions.CRSError:
+        # special cases not in proj.db
+        if crs == "DK:S34J":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        elif crs == "DK:S34S":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        elif crs == "DK:S45B":
+            output["v1_unit"] = "metre"
+            output["v2_unit"] = "metre"
+        else:
+            return HTTPException(status_code=404, detail=f"'{crs}' not available")
+
+    # sort output for improved human readability
+    return dict(sorted(output.items()))
 
 
-@api.route("/v1.2/crs/<string:crs>")
-class CRSv1_2(CRSv1_1):
-    def get(self, crs):
-        """
-        Retrieve information about a given coordinate reference system
+@app.get("/v1.0/trans/{src}/{dst}/{v}")
+@app.get("/v1.1/trans/{src}/{dst}/{v}")
+@app.get("/v1.2/trans/{src}/{dst}/{v}")
+async def transformation_2d(src: str, dst: str, v: str):
+    """
+    Transform a 2D coordinate from one CRS to another
+    """
 
-        Version 1.2 includes coodinate units of the returned CRS.
-        """
-        output = super().get(crs)
-        # initialize unit elements in output dict
-        for i in range(1, 5):
-            output[f"v{i}_unit"] = None
-
-        try:
-            crs_from_db = pyproj.CRS.from_user_input(crs.upper())
-            for i, axis in enumerate(crs_from_db.axis_info, start=1):
-                output[f"v{i}_unit"] = axis.unit_name
-
-        except pyproj.exceptions.CRSError:
-            # special cases not in proj.db
-            if crs == "DK:S34J":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            elif crs == "DK:S34S":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            elif crs == "DK:S45B":
-                output["v1_unit"] = "metre"
-                output["v2_unit"] = "metre"
-            else:
-                abort(404, message=f"'{crs}' not available")
-
-        # sort output for improved human readability
-        return dict(sorted(output.items()))
-
-
-@api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-@api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-@api.route("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>")
-class Transformation2D(Resource):
-    doc = {
-        "src": "Source CRS",
-        "dst": "Destination CRS",
-        "v1": "1st coordinate component",
-        "v2": "2nd coordinate component",
-    }
-
-    @api.doc(params=doc)
-    def get(self, src, dst, v1, v2):
-        """
-        Transform a 2D coordinate from one CRS to another
-        """
-        try:
+    try:
+        v = v.split(",")
+        if len(v) == 4:
             transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2)))
-        except ValueError as error:
-            abort(404, message=error)
-
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
-
-
-@api.route("/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-@api.route("/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-@api.route("/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>")
-class Transformation3D(Resource):
-    doc = {
-        "src": "Source CRS",
-        "dst": "Destination CRS",
-        "v1": "1st coordinate component",
-        "v2": "2nd coordinate component",
-        "v3": "3rd coordinate component",
-    }
-
-    @api.doc(params=doc)
-    def get(self, src, dst, v1, v2, v3):
-        """
-        Transform a 3D coordinate from one CRS to another
-        """
-        try:
+            (v1, v2, v3, v4) = transformer.transform(_make_4d((v[0], v[1], v[2], v[3])))
+            return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+        elif len(v) == 3:
             transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform(_make_4d((v1, v2, v3)))
-        except ValueError as error:
-            abort(404, message=error)
-
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
-
-
-@api.route(
-    "/v1.0/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-@api.route(
-    "/v1.1/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-@api.route(
-    "/v1.2/trans/<string:src>/<string:dst>/<number:v1>,<number:v2>,<number:v3>,<number:v4>"
-)
-class Transformation4D(Resource):
-    doc = {
-        "src": "Source CRS",
-        "dst": "Destination CRS",
-        "v1": "1st coordinate component",
-        "v2": "2nd coordinate component",
-        "v3": "3rd coordinate component",
-        "v4": "4th coordinate component",
-    }
-
-    @api.doc(params=doc)
-    def get(self, src, dst, v1, v2, v3=None, v4=None):
-        """
-        Transform a 4D coordinate from one CRS to another
-        """
-        try:
+            (v1, v2, v3, _) = transformer.transform(_make_4d((v[0], v[1], v[2])))
+            return {"v1": v1, "v2": v2, "v3": v3, "v4": None}
+        elif len(v) == 2:
             transformer = TransformerFactory.create(src, dst)
-            (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
-        except ValueError as error:
-            abort(404, message=error)
+            (v1, v2, _, _) = transformer.transform(_make_4d((v[0], v[1])))
+            return {"v1": v1, "v2": v2, "v3": None, "v4": None}
+    except ValueError as error:
+        return HTTPException(status_code=404, detail=error)
 
-        return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3}")
+async def transformation_3d(src: str, dst: str, v1: str, v2: str, v3: str):
+    """
+    Transform a 3D coordinate from one CRS to another
+    """
+    try:
+        transformer = TransformerFactory.create(src, dst)
+        (v1, v2, v3, _) = transformer.transform(_make_4d((v1, v2, v3)))
+    except ValueError as error:
+        return HTTPException(status_code=404, detail=error)
+
+    return {"v1": v1, "v2": v2, "v3": v3, "v4": None}
 
 
-@api.route("/v1.2/info/")
-class Info(Resource):
-    def get(self):
-        """
-        Retrieve information about the running instance of WEBPROJ and it's constituent components.
-        """
-        return {
-            "webproj_version": version,
-            "proj_version": pyproj.__proj_version__,
-        }
+@app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+@app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+@app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
+async def transformation_4d(src: str, dst: str, v1: str, v2: str, v3: str, v4: str):
+    """
+    Transform a 4D coordinate from one CRS to another
+    """
+    try:
+        transformer = TransformerFactory.create(src, dst)
+        (v1, v2, v3, v4) = transformer.transform((v1, v2, v3, v4))
+    except ValueError as error:
+        return HTTPException(status_code=404, detail=error)
+
+    return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
+
+
+@app.get("/v1.2/info")
+async def info():
+    """
+    Retrieve information about the running instance of WEBPROJ and it's constituent components.
+    """
+    return {
+        "webproj_version": __VERSION__,
+        "proj_version": pyproj.__proj_version__,
+    }
