@@ -11,7 +11,7 @@ from pyproj.transformer import Transformer, AreaOfInterest
 
 from webproj.utils import IntFloatConverter
 
-version = "1.2.2"
+version = "1.2.3"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
