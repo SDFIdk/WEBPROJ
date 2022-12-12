@@ -22,8 +22,10 @@ COPY /app/main.py /app/main.py
 RUN apt update -y && apt upgrade -y
 
 RUN pip install --upgrade pip
-RUN pip install pyproj
+RUN pip install "pyproj<3.4.0"
+RUN pip install "flask>=2.1.0,<2.2.0"
 RUN pip install flask-restx flask-cors
 run pip install "Werkzeug>=2.1.0,<2.2.0"
 RUN pip install /webproj
-RUN pyproj sync --source-id dk_sdfe
+RUN pyproj sync --source-id dk_sdfe -v
+
