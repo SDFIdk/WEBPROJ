@@ -4,21 +4,27 @@
 
 If issueing a patch release a maintenance branch should already exists. Check it out:
 
-> git checkout 1.1
+```
+git checkout 1.1
+```
 
 and ensure sure that all relevant commits have been backported to the maintenance branch in question.
 
 If a major or minor version release is being prepared, a new maintenance branch based on the
 master branch needs to be created:
 
-> git checkout -b 1.1
+```
+git checkout -b 1.1
+```
 
 2. Tag the latest commit on the the maintenance branch with the new version number
 
 On the maintenance branch the latest commit can now be tagged with the version number, e.g.:
 
-> git tag 1.1.1
-> git push --tags
+```
+git tag 1.1.1
+git push --tags
+```
 
 3. Close the GitHub milestone for the version to be released
 
