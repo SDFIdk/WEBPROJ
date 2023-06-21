@@ -189,8 +189,8 @@
         "v1_short": "ϕ",
         "v2": "Længdegrad",
         "v2_short": "λ",
-        "v3":"Ellipsoidehøjde",
-        "v3_short":"h",
+        "v3": null,
+        "v3_short": null,
         "v4": null,
         "v4_short": null
     },
