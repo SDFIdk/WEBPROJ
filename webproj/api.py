@@ -2,15 +2,17 @@ from cmath import inf
 import os
 import json
 from pathlib import Path
-from typing import Optional
+from typing import List, Tuple, Optional
 
 from fastapi import (
     FastAPI,
     HTTPException,
     security,
     Depends,
+    status,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
@@ -234,10 +236,79 @@ class TransformerFactory:
         return cls.transformers[src][dst]
 
 
+# Set up return types
+
+
+class CRSList(BaseModel):
+    """Return response for List of CRS's"""
+
+    DK: List[str]
+    GL: List[str]
+    Global: List[str]
+
+
+class CRS_1_0(BaseModel):  # pylint: disable=invalid-name
+    """Return response for CRS"""
+
+    country: str
+    title: str
+    title_short: str
+    v1: str
+    v1_short: str
+    v2: str
+    v2_short: str
+    v3: str | None
+    v3_short: str | None
+    v4: str | None
+    v4_short: str | None
+
+
+class CRS_1_1(CRS_1_0):  # pylint: disable=invalid-name
+    """Return response for CRS"""
+
+    srid: str
+    area_of_use: str
+    bounding_box: Tuple[float, float, float, float]
+
+
+class CRS_1_2(CRS_1_1):  # pylint: disable=invalid-name
+    """Return response for CRS"""
+
+    v1_unit: str
+    v2_unit: str
+    v3_unit: str | None
+    v4_unit: str | None
+
+
+class Coordinate(BaseModel):
+    """Return response of a coordinate"""
+
+    v1: float
+    v2: float
+    v3: float | None
+    v4: float | None
+
+
+class HTTPError(BaseModel):
+    """Return response in case of an error"""
+
+    detail: str
+
+
+class WEBPROJInfo(BaseModel):
+    """Return response for WEBPROJ info"""
+
+    webproj_version: str
+    proj_version: str
+
+
+# Set up API entry-points
+
+
 @app.get("/v1.0/crs/")
 @app.get("/v1.1/crs/")
 @app.get("/v1.2/crs/")
-def crs_index():
+def crs_index() -> CRSList:
     """
     List available coordinate reference systems
     """
@@ -250,7 +321,13 @@ def crs_index():
     return index
 
 
-@app.get("/v1.0/crs/{crs}")
+@app.get(
+    "/v1.0/crs/{crs}",
+    responses={
+        status.HTTP_200_OK: {"model": CRS_1_0},
+        status.HTTP_400_BAD_REQUEST: {"model": HTTPError},
+    },
+)
 def crs_v1_0(crs):
     """
     Retrieve information about a given coordinate reference system
@@ -258,10 +335,18 @@ def crs_v1_0(crs):
     try:
         return CRS_LIST[crs.upper()]
     except KeyError:
-        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"'{crs}' not available."
+        )
 
 
-@app.get("/v1.1/crs/{crs}")
+@app.get(
+    "/v1.1/crs/{crs}",
+    responses={
+        status.HTTP_200_OK: {"model": CRS_1_1},
+        status.HTTP_400_BAD_REQUEST: {"model": HTTPError},
+    },
+)
 def crs_v1_1(crs):
     """
     Retrieve information about a given coordinate reference system
@@ -271,7 +356,9 @@ def crs_v1_1(crs):
     """
     output = crs_v1_0(crs)
     if isinstance(output, HTTPException):
-        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
+        # If we receive an error from crs_v1_0 we swiftly pass it on
+        return output
+
     output["srid"] = crs
 
     # determine area of use and bounding box
@@ -300,12 +387,21 @@ def crs_v1_1(crs):
             output["area_of_use"] = "Denmark - Bornholm onshore"
             output["bounding_box"] = [14.6, 54.9, 15.2, 55.3]
         else:
-            return HTTPException(status_code=404, detail=f"'{crs}' not available")
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{crs}' not available.",
+            )
 
     return output
 
 
-@app.get("/v1.2/crs/{crs}")
+@app.get(
+    "/v1.2/crs/{crs}",
+    responses={
+        status.HTTP_200_OK: {"model": CRS_1_2},
+        status.HTTP_400_BAD_REQUEST: {"model": HTTPError},
+    },
+)
 def crs_v1_2(crs):
     """
     Retrieve information about a given coordinate reference system
@@ -314,7 +410,8 @@ def crs_v1_2(crs):
     """
     output = crs_v1_1(crs)
     if isinstance(output, HTTPException):
-        return HTTPException(status_code=400, detail=f"'{crs}' not available.")
+        # If we receive an error from crs_v1_0 we swiftly pass it on
+        return output
 
     # initialize unit elements in output dict
     for i in range(1, 5):
@@ -337,7 +434,9 @@ def crs_v1_2(crs):
             output["v1_unit"] = "metre"
             output["v2_unit"] = "metre"
         else:
-            return HTTPException(status_code=404, detail=f"'{crs}' not available")
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"'{crs}' not available"
+            )
 
     # sort output for improved human readability
     return dict(sorted(output.items()))
@@ -346,7 +445,7 @@ def crs_v1_2(crs):
 @app.get("/v1.0/trans/{src}/{dst}/{v}")
 @app.get("/v1.1/trans/{src}/{dst}/{v}")
 @app.get("/v1.2/trans/{src}/{dst}/{v}")
-async def transformation_2d(src: str, dst: str, v: str):
+async def transformation_2d(src: str, dst: str, v: str) -> Coordinate:
     """
     Transform a 2D coordinate from one CRS to another
     """
@@ -372,7 +471,9 @@ async def transformation_2d(src: str, dst: str, v: str):
 @app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3}")
 @app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3}")
 @app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3}")
-async def transformation_3d(src: str, dst: str, v1: str, v2: str, v3: str):
+async def transformation_3d(
+    src: str, dst: str, v1: str, v2: str, v3: str
+) -> Coordinate:
     """
     Transform a 3D coordinate from one CRS to another
     """
@@ -388,7 +489,9 @@ async def transformation_3d(src: str, dst: str, v1: str, v2: str, v3: str):
 @app.get("/v1.0/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
 @app.get("/v1.1/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
 @app.get("/v1.2/trans/{src}/{dst}/{v1},{v2},{v3},{v4}")
-async def transformation_4d(src: str, dst: str, v1: str, v2: str, v3: str, v4: str):
+async def transformation_4d(
+    src: str, dst: str, v1: str, v2: str, v3: str, v4: str
+) -> Coordinate:
     """
     Transform a 4D coordinate from one CRS to another
     """
@@ -402,7 +505,7 @@ async def transformation_4d(src: str, dst: str, v1: str, v2: str, v3: str, v4: s
 
 
 @app.get("/v1.2/info")
-async def info():
+async def info() -> WEBPROJInfo:
     """
     Retrieve information about the running instance of WEBPROJ and it's constituent components.
     """

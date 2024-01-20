@@ -1,9 +1,10 @@
 name: webproj
 channels:
   - conda-forge
-  - defaults
 dependencies:
-  - python=3.12
+  - python
   - fastapi
+  - httpx
   - pyproj
+  - pydantic
   - uvicorn

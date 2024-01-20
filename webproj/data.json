@@ -198,6 +198,8 @@
         "country": "DK",
         "title": "European Datum 1950 / Dansk Normal Nul",
         "title_short": "ED50 / DNN",
+        "v1": "Breddegrad",
+        "v1_short": "ϕ",
         "v2": "Længdegrad",
         "v2_short": "λ",
         "v3": "Kote",
