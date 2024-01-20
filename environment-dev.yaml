@@ -11,7 +11,4 @@ dependencies:
   - uvicorn
   - black
   - pytest
-  - coverage
   - pytest-cov
-  - pip:
-    - coveragepy-lcov
