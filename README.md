@@ -9,9 +9,8 @@ at https://docs.dataforsyningen.dk/#webproj.
 
 ## API
 
-The API is a simple REST API that delivers data in JSON format. In
-the current version two main entry points are provided: `/crs/` and
-`/trans/`.
+The API is a simple REST API that delivers data in JSON format. The two main
+entry points are provided: `/crs/` and `/trans/`.
 
 ### Installation
 
@@ -31,14 +30,11 @@ Activate the new environment with
 $ conda activate webproj
 ```
 
-For production use, the API should be installed as a component in a
-WSGI compatible http server. How to configure this depends on the used http server.
-
-
 Remember to run projsync in order to install the datum grids.
 
 ```
 $ projsync --source-id dk_sdfe
+$ projsync --source-id dk_sdfi
 ```
 
 ### Tests
@@ -57,14 +53,18 @@ For a simple demonstration of the WEBPROJ REST API a webserver can
 be started locally by running
 
 ```
-(webproj) C:\dev\webproj>python webproj\api.py
+(webproj) C:\dev\webproj>uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-This will spawn a Flask server that serves the API locally on
-`http://127.0.0.1:5000/`.
+This will spawn a web-server that serves the API locally on
+`http://127.0.0.1:8000/`.
 
 The API exposes a small set of features that are accessed via URL
-entry points. For version 1.0 of the API we have:
+entry points. OpenAPI documentation is auto-generated and is available
+in a user-friendly web UI at `/documentation`. A machine-readable version
+of the same documentation is available at `/openapi.json`.
+
+For version 1.0 of the API we have:
 
 #### `/crs/`
 
@@ -74,7 +74,7 @@ be transformed between.
 ##### Example
 
 ```
-$ curl http://127.0.0.1:5000/v1.0/crs/
+$ curl http://127.0.0.1:8000/v1.0/crs/
 {
 DK: [
     "EPSG:25832",
@@ -94,7 +94,7 @@ Returns information about a specific coordinate reference system.
 ##### Example
 
 ```
-$curl http://127.0.0.1:5000/v1.0/crs/EPSG:25832
+$curl http://127.0.0.1:8000/v1.0/crs/EPSG:25832
 {
     country: "DK",
     title: "ETRS89 / UTM Zone 32 Nord",
@@ -120,7 +120,7 @@ depending on the input the number of used output coordinate components varies.
 
 ```
 # 2D
-curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0
+curl http://127.0.0.1:8000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0
 {
     "v1:": 687071.4391094431,
     "v2": 6210141.326748009,
@@ -129,7 +129,7 @@ curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0
 }
 
 # 3D
-curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0
+curl http://127.0.0.1:8000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0
 {
     "v1:": 687071.4391094431,
     "v2": 6210141.326748009,
@@ -138,7 +138,7 @@ curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0
 }
 
 # 4D
-curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0,2010.5
+curl http://127.0.0.1:8000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0,2010.5
 {
     "v1:": 687071.4391094431,
     "v2": 6210141.326748009,
@@ -146,9 +146,3 @@ curl http://127.0.0.1:5000/v1.0/trans/EPSG:4258/EPSG:25832/12.0,56.0,30.0,2010.5
     "v4": 2010.5
 }
 ```
-
-## Web application
-
-N/A.
-
-

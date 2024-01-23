@@ -10,12 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: docker build --tag webproj .
-      - run: 'docker run -d -p 0.0.0.0:5000:80 --name restapi webproj'
+      - run: 'docker run -d -p 80:80 --name restapi webproj'
       - run: docker ps
       - run: sudo apt-get update
 
       - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
@@ -28,18 +28,7 @@ jobs:
       - name: Pytest
         run: pytest --cov
 
-      - run: >-
-          docker exec restapi curl -s
-          localhost/v1.0/trans/EPSG:4258/DK:S34S/55.0,12.0 > S34S.out
+      - run: curl -s localhost/v1.0/trans/EPSG:4258/DK:S34S/55.0,12.0 > S34S.out
+
       - run: cat S34S.out
       - run: diff test_s34s.out S34S.out
-
-      - name: Covert Coverage Results
-        run: |
-          coveragepy-lcov --data_file_path .coverage --output_file_path lcov.info
-
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info

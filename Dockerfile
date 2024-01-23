@@ -1,31 +1,30 @@
-# See https://github.com/tiangolo/meinheld-gunicorn-flask-docker
-# for notes on how to use this particular Docker image.
-#
-# In summary: Make sure that a /app/main.py file with a Flask-object called
-# 'app'  is present and everything should run smoothly with all the bells and
-# whistles of a properly configured HTTP server
+FROM condaforge/miniforge3
 
-FROM tiangolo/meinheld-gunicorn-flask:python3.9
-
+# We store PROJ ressources in $WEBPROJ_LIB
 ENV WEBPROJ_LIB /proj
+RUN mkdir $WEBPROJ_LIB
 
-RUN mkdir /proj
-
+# Copy necessary files. Tests and README are needed by setup.py
 COPY /webproj /webproj/webproj
-COPY /tests /webproj/tests
 COPY /app /webproj/app
+COPY /tests /webproj/tests
 COPY /setup.py /webproj/setup.py
+COPY /environment.yaml /webproj/environment.yaml
 COPY /README.md /webproj/README.md
-COPY /app/main.py /app/main.py
+
+WORKDIR /webproj
 
 # Running upgrade for security
-RUN apt update -y && apt upgrade -y
+RUN apt-get update -y && apt-get upgrade -y
 
-RUN pip install --upgrade pip
-RUN pip install "pyproj<3.4.0"
-RUN pip install "flask>=2.1.0,<2.2.0"
-RUN pip install flask-restx flask-cors
-run pip install "Werkzeug>=2.1.0,<2.2.0"
-RUN pip install /webproj
-RUN pyproj sync --source-id dk_sdfe -v
+# Set up virtual environment
+RUN conda env create -f environment.yaml
+RUN conda run -n webproj python -m pip install --no-deps .
 
+# Sync PROJ-data files
+RUN conda run -n webproj pyproj sync --source-id dk_sdfe --target-dir $WEBPROJ_LIB
+RUN conda run -n webproj pyproj sync --source-id dk_sdfi --target-dir $WEBPROJ_LIB
+
+CMD ["conda", "run", "-n", "webproj", "uvicorn", "--proxy-headers", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+
+EXPOSE 80
