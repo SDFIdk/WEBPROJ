@@ -16,6 +16,8 @@ from pydantic import BaseModel
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
+from webproj.middleware import ProxyHeadersMiddleware
+
 __VERSION__ = "1.2.3"
 
 if "WEBPROJ_LIB" in os.environ:
@@ -79,6 +81,7 @@ app = FastAPI(
 )
 origins = ["*"]
 app.add_middleware(CORSMiddleware, allow_origins=origins)
+app.add_middleware(ProxyHeadersMiddleware)
 
 _DATA = Path(__file__).parent / Path("data.json")
 
