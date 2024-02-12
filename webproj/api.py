@@ -79,8 +79,6 @@ app = FastAPI(
     docs_url="/documentation",
     dependencies=[Depends(token_header_param), Depends(token_query_param)],
 )
-origins = ["*"]
-app.add_middleware(CORSMiddleware, allow_origins=origins)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="127.0.0.1")
 
 _DATA = Path(__file__).parent / Path("data.json")
