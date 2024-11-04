@@ -30,5 +30,6 @@ jobs:
 
       - run: curl -s localhost/v1.0/trans/EPSG:4258/DK:S34S/55.0,12.0 > S34S.out
 
+      - run: echo >> S34S.out # Add's a \n at the end of the file. This satifies the diff further down.
       - run: cat S34S.out
       - run: diff test_s34s.out S34S.out
