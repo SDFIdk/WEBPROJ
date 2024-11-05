@@ -1,7 +1,7 @@
 FROM condaforge/miniforge3
 
 # We store PROJ ressources in $WEBPROJ_LIB
-ENV WEBPROJ_LIB /proj
+ENV WEBPROJ_LIB=/proj
 RUN mkdir $WEBPROJ_LIB
 
 # Copy necessary files. Tests and README are needed by setup.py
@@ -19,7 +19,6 @@ RUN apt-get update -y && apt-get upgrade -y
 
 # Set up virtual environment
 RUN conda env create -f environment.yaml
-RUN conda run -n webproj python -m pip install --no-deps .
 
 # Sync PROJ-data files
 RUN conda run -n webproj pyproj sync --source-id dk_sdfe --target-dir $WEBPROJ_LIB
