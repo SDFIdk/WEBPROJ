@@ -16,7 +16,7 @@ from pydantic import BaseModel
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest
 
-from webproj.middleware import ProxyHeadersMiddleware
+from webproj.middleware import ProxyHeaderMiddleware
 
 __VERSION__ = "1.2.3"
 
@@ -79,7 +79,7 @@ app = FastAPI(
     docs_url="/documentation",
     dependencies=[Depends(token_header_param), Depends(token_query_param)],
 )
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="127.0.0.1")
+app.add_middleware(ProxyHeaderMiddleware, trusted_hosts="127.0.0.1")
 
 _DATA = Path(__file__).parent / Path("data.json")
 
@@ -132,7 +132,7 @@ class OptimusPrime:
 
         if dst not in CRS_LIST.keys():
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unknown destination CRS identifier: '{dst}'",
             )
 
@@ -140,7 +140,7 @@ class OptimusPrime:
         dst_region = CRS_LIST[dst]["country"]
         if src_region != dst_region and "Global" not in (src_region, dst_region):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="CRS's are not compatible across countries",
             )
 
