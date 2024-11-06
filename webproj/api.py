@@ -504,7 +504,7 @@ async def transformation_4d(
     return {"v1": v1, "v2": v2, "v3": v3, "v4": v4}
 
 
-@app.get("/v1.2/info")
+@app.get("/v1.2/info/")
 async def info() -> WEBPROJInfo:
     """
     Retrieve information about the running instance of WEBPROJ and it's constituent components.
