@@ -131,7 +131,7 @@ class OptimusPrime:
 
         if dst not in CRS_LIST.keys():
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unknown destination CRS identifier: '{dst}'",
             )
 
@@ -139,7 +139,7 @@ class OptimusPrime:
         dst_region = CRS_LIST[dst]["country"]
         if src_region != dst_region and "Global" not in (src_region, dst_region):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="CRS's are not compatible across countries",
             )
 
@@ -302,12 +302,17 @@ class WEBPROJInfo(BaseModel):
     proj_version: str
 
 
-# Set up API entry-points
-
+# Set up API entry-points. Note that some entry-points are duplicated without the trailing /.
+# We do this to circumvent implicit redirects made by uvicorn (?) that results
+# in URL's that can't be resolved. We do not include those entry-points in the schema.
+# It may be possible to do this in a cleaner way by configuring uvicorn differently...
 
 @app.get("/v1.0/crs/")
+@app.get("/v1.0/crs", include_in_schema=False)
 @app.get("/v1.1/crs/")
+@app.get("/v1.1/crs", include_in_schema=False)
 @app.get("/v1.2/crs/")
+@app.get("/v1.2/crs", include_in_schema=False)
 def crs_index() -> CRSList:
     """
     List available coordinate reference systems
@@ -505,6 +510,7 @@ async def transformation_4d(
 
 
 @app.get("/v1.2/info/")
+@app.get("/v1.2/info", include_in_schema=False)
 async def info() -> WEBPROJInfo:
     """
     Retrieve information about the running instance of WEBPROJ and it's constituent components.
