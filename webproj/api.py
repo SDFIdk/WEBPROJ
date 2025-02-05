@@ -14,9 +14,9 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pyproj
-from pyproj.transformer import Transformer, AreaOfInterest
+from pyproj.transformer import Transformer, AreaOfInterest, CRS
 
-__VERSION__ = "1.2.3"
+__VERSION__ = "1.2.4"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
@@ -181,8 +181,13 @@ class OptimusPrime:
                 dst_hub = "EPSG:4909"
 
             try:
+                # Explicit promotion to 3D CRS's to ensure vertical
+                # transformations are picked up correctly.
+                # Tested in test_conversion_to_3d().
                 self.epsg_pipeline = Transformer.from_crs(
-                    src, dst_hub, area_of_interest=region
+                    crs_from=CRS(src).to_3d(),
+                    crs_to=CRS(dst_hub).to_3d(),
+                    area_of_interest=region,
                 )
             except RuntimeError as error:
                 raise ValueError("Invalid CRS identifier") from error

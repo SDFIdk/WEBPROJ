@@ -55,8 +55,8 @@ def _assert_coordinate(entry, expected_json_output, tolerance=1e-6):
     client = TestClient(app)
     response = client.get(entry)
     result = response.json()
-    print(expected_json_output)
-    print(result)
+    print("expected_output:", expected_json_output)
+    print("results        :", result)
     for key in expected_json_output.keys():
         if key not in result.keys():
             raise AssertionError
@@ -316,6 +316,20 @@ def test_combined_epsg_codes(api_all):
     }
     _assert_coordinate(api_entry, expected, tolerance=0.01)
 
+def test_conversion_to_3d(api_all):
+    """
+    Test that a 2D CRS is correctly promoted to 3D when used in
+    combination with a 3D CRS.
+
+    """
+    api_entry = f"/{api_all}/trans/EPSG:4258/EPSG:4258+5799/55.5,11.5,0"
+    expected = {
+        "v1": 55.5,
+        "v2": 11.5,
+        "v3": -37.4190,
+        "v4": None,
+    }
+    _assert_coordinate(api_entry, expected, tolerance=0.01)
 
 def test_crs_return_srid(api_from_v1_1):
     """
