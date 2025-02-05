@@ -17,7 +17,6 @@ jobs:
       - name: Setup conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-variant: Mambaforge
             miniforge-version: latest
             use-mamba: true
             environment-file: environment-dev.yaml
