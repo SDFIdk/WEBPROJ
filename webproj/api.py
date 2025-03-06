@@ -16,7 +16,7 @@ from pydantic import BaseModel
 import pyproj
 from pyproj.transformer import Transformer, AreaOfInterest, CRS
 
-__VERSION__ = "1.2.4"
+__VERSION__ = "1.2.5"
 
 if "WEBPROJ_LIB" in os.environ:
     pyproj.datadir.append_data_dir(os.environ["WEBPROJ_LIB"])
@@ -62,7 +62,7 @@ def token_query_param(
 
 # Set up the app
 app = FastAPI(
-    title=__name__,
+    title="WEBPROJ",
     description="## API til koordinattransformationer"
     "\n\n"
     "APIet __WEBPROJ__ giver adgang til at transformere "
